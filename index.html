@@ -1,0 +1,2528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANKA Development Gantt Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 28px;
+        }
+
+        h2 {
+            margin: 30px 0 15px 0;
+            color: #34495e;
+            font-size: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .developer-section {
+            margin-bottom: 40px;
+        }
+
+        .developer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .developer-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .developer-card label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .developer-card input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .date-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-display-text {
+            font-weight: 600;
+            color: #2980b9;
+            flex: 1;
+        }
+
+        .services-table-container {
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Vertical separators for phases - add left border to phase starting columns */
+        /* Kategori kaldırıldı, sütun numaraları 1 azaldı */
+        
+        /* Genel alanı başlangıcı (3. sütun - Genel Başlangıç) */
+        tbody td:nth-child(3),
+        thead tr:first-child th:nth-child(3), /* Genel header (colspan=2) */
+        thead tr:nth-child(2) th:nth-child(1) { /* Genel Başlangıç sub-header */
+            border-left: 4px solid #9b59b6;
+        }
+
+        /* Analist alanı başlangıcı (5. sütun - Analist) */
+        tbody td:nth-child(5),
+        thead tr:first-child th:nth-child(4) { /* Analist header */
+            border-left: 4px solid #16a085;
+        }
+
+        /* Analiz aşaması başlangıcı (8. sütun - Analiz Süre) */
+        tbody td:nth-child(8),
+        thead tr:first-child th:nth-child(7), /* Analiz header (colspan=2) */
+        thead tr:nth-child(2) th:nth-child(3) { /* Analiz Süre sub-header */
+            border-left: 4px solid #3498db;
+        }
+
+        /* Geliştirme aşaması başlangıcı (10. sütun - Geliştirme Süre) */
+        tbody td:nth-child(10),
+        thead tr:first-child th:nth-child(8), /* Geliştirme header (colspan=2) */
+        thead tr:nth-child(2) th:nth-child(5) { /* Geliştirme Süre sub-header */
+            border-left: 4px solid #2ecc71;
+        }
+
+        /* Test aşaması başlangıcı (12. sütun - Test Süre) */
+        tbody td:nth-child(12),
+        thead tr:first-child th:nth-child(9), /* Test header (colspan=2) */
+        thead tr:nth-child(2) th:nth-child(7) { /* Test Süre sub-header */
+            border-left: 4px solid #e74c3c;
+        }
+
+        /* Buffer alanı (14. sütun) */
+        tbody td:nth-child(14),
+        thead tr:first-child th:nth-child(10) { /* Buffer header */
+            border-left: 4px solid #f39c12;
+        }
+
+        /* Bağımlılıklar alanı (15. sütun) */
+        tbody td:nth-child(15),
+        thead tr:first-child th:nth-child(11) { /* Bağımlılıklar header */
+            border-left: 4px solid #95a5a6;
+        }
+
+        th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        tr.completed {
+            background: #ecf0f1;
+            color: #95a5a6;
+        }
+
+        tr.completed td {
+            opacity: 0.6;
+        }
+
+        tr.conflict {
+            background: #fff3cd !important;
+            border-left: 3px solid #ffc107;
+        }
+
+        tr.conflict:hover {
+            background: #ffe69c !important;
+        }
+
+        input[type="number"], select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .date-cell {
+            font-weight: 500;
+            color: #2980b9;
+        }
+
+        .completed .date-cell {
+            color: #95a5a6;
+        }
+
+        .gantt-container {
+            overflow-x: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .gantt-chart {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .gantt-header {
+            display: flex;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 10px;
+        }
+
+        .gantt-row-label {
+            width: 200px;
+            flex-shrink: 0;
+            padding: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .gantt-timeline {
+            display: flex;
+            flex: 1;
+            position: relative;
+            min-width: 0;
+        }
+
+        .gantt-day {
+            flex-shrink: 0;
+            min-width: 30px;
+            text-align: center;
+            font-size: 11px;
+            padding: 4px 2px;
+            border-right: 1px solid #e0e0e0;
+            box-sizing: border-box;
+        }
+
+        .gantt-day.weekend {
+            background: #f0f0f0;
+        }
+
+        .gantt-day-header {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .gantt-day-date {
+            color: #7f8c8d;
+            font-size: 10px;
+        }
+
+        .gantt-row {
+            display: flex;
+            margin-bottom: 4px;
+            min-height: 36px;
+            align-items: center;
+        }
+
+        .gantt-bars {
+            display: flex;
+            flex: 1;
+            position: relative;
+            height: 30px;
+        }
+
+        .gantt-bar {
+            position: absolute;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .gantt-bar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .gantt-bar.dev1 { background: #3498db; }
+        .gantt-bar.dev2 { background: #2ecc71; }
+        .gantt-bar.dev3 { background: #e74c3c; }
+        .gantt-bar.dev4 { background: #f39c12; }
+        .gantt-bar.completed { background: #27ae60; }
+        .gantt-bar.unassigned { background: #ecf0f1; border: 2px dashed #bdc3c7; }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .category-core {
+            background: #e8f4f8;
+            color: #2980b9;
+        }
+
+        .category-product {
+            background: #fef5e7;
+            color: #e67e22;
+        }
+
+        select[multiple] {
+            height: 60px;
+        }
+
+        .dependency-btn {
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .dependency-btn:hover {
+            background: #2980b9;
+        }
+
+        .dependency-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .dependency-tag {
+            background: #e8f4f8;
+            color: #2980b9;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dependency-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .dependency-tag .remove:hover {
+            color: #c0392b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #95a5a6;
+        }
+
+        .modal-close:hover {
+            color: #e74c3c;
+        }
+
+        .dependency-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dependency-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .dependency-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dependency-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .dependency-item label {
+            flex: 1;
+            cursor: pointer;
+        }
+        
+        select[onchange*="updateServiceStatus"] {
+            font-weight: 600;
+            padding: 6px;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="pending"] {
+            color: #95a5a6;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="analysis"] {
+            color: #3498db;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="development"] {
+            color: #f39c12;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="testing"] {
+            color: #9b59b6;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="integration"] {
+            color: #e67e22;
+        }
+        
+        select[onchange*="updateServiceStatus"] option[value="completed"] {
+            color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ANKA Kaynak Planlaması</h1>
+
+        <!-- Statistics -->
+        <div class="stats-container" id="statsContainer">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h3>Proje Tarihleri</h3>
+                <div class="stat-value" style="font-size: 16px;" id="projectDates">
+                    <span id="projectStart">-</span> → <span id="projectEnd">-</span>
+                </div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3>Faz 1 <span style="font-size: 12px; opacity: 0.8;" id="phase1Count">(0)</span></h3>
+                <div class="stat-value" style="font-size: 14px;" id="phase1Dates">- → -</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <h3>Faz 2 <span style="font-size: 12px; opacity: 0.8;" id="phase2Count">(0)</span></h3>
+                <div class="stat-value" style="font-size: 14px;" id="phase2Dates">- → -</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <h3>Faz 3 <span style="font-size: 12px; opacity: 0.8;" id="phase3Count">(0)</span></h3>
+                <div class="stat-value" style="font-size: 14px;" id="phase3Dates">- → -</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3>Faz 4 <span style="font-size: 12px; opacity: 0.8;" id="phase4Count">(0)</span></h3>
+                <div class="stat-value" style="font-size: 14px;" id="phase4Dates">- → -</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);">
+                <h3>Faz 5 <span style="font-size: 12px; opacity: 0.8;" id="phase5Count">(0)</span></h3>
+                <div class="stat-value" style="font-size: 14px;" id="phase5Dates">- → -</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                <h3>Tamamlanan</h3>
+                <div class="stat-value" id="completedServices">10</div>
+            </div>
+        </div>
+
+        <!-- Resource Configuration -->
+        <div class="developer-section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <h2>📊 Analist</h2>
+                    <div class="developer-grid" id="analystGrid">
+                        <!-- Analyst cards will be inserted here -->
+                    </div>
+                </div>
+                <div>
+                    <h2>🧪 Test Uzmanı</h2>
+                    <div class="developer-grid" id="testerGrid">
+                        <!-- Tester cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="developer-section">
+            <h2>👨‍💻 Geliştirici</h2>
+            <div class="developer-grid" id="developerGrid">
+                <!-- Developer cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="autoOptimizeResources()" style="background: #e74c3c;">🚀 Kaynakları Otomatik Optimize Et</button>
+            <button class="btn btn-primary" onclick="saveToLocalStorage()">💾 Tarayıcıya Kaydet</button>
+            <button class="btn btn-secondary" onclick="loadFromLocalStorage()">📂 Tarayıcıdan Yükle</button>
+            <button class="btn btn-primary" onclick="exportToFile()">📥 JSON İndir</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📤 JSON Yükle</button>
+            <button class="btn btn-primary" onclick="exportToExcel()">📊 Excel'e Aktar</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('excelInput').click()">📈 Excel'den Yükle</button>
+            <button class="btn btn-secondary" onclick="resetData()">🔄 Varsayılana Sıfırla</button>
+            <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importFromFile(event)">
+            <input type="file" id="excelInput" accept=".csv" style="display: none;" onchange="importFromExcel(event)">
+        </div>
+
+        <!-- Services Table -->
+        <h2>📋 Servis Takvimi</h2>
+        <div class="services-table-container">
+            <table id="servicesTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Faz</th>
+                        <th rowspan="2">Servis Adı</th>
+                        <th colspan="2">Genel</th>
+                        <th rowspan="2">Analist</th>
+                        <th rowspan="2">Geliştirici</th>
+                        <th rowspan="2">Test Uzmanı</th>
+                        <th colspan="2">Analiz</th>
+                        <th colspan="2">Geliştirme</th>
+                        <th colspan="2">Test</th>
+                        <th rowspan="2">Buffer</th>
+                        <th rowspan="2">Bağımlılıklar</th>
+                        <th rowspan="2">Durum</th>
+                    </tr>
+                    <tr>
+                        <th>Başlangıç</th>
+                        <th>Bitiş</th>
+                        <th>Süre</th>
+                        <th>Başlangıç<br/>Bitiş</th>
+                        <th>Süre</th>
+                        <th>Başlangıç<br/>Bitiş</th>
+                        <th>Süre</th>
+                        <th>Başlangıç<br/>Bitiş</th>
+                    </tr>
+                </thead>
+                <tbody id="servicesTableBody">
+                    <!-- Services will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Gantt Chart -->
+        <h2>📊 Gantt Şeması <small style="font-size: 14px; color: #7f8c8d; font-weight: normal;">(Sadece Geliştirme Süreleri)</small></h2>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span id="dev1Label">Dev1</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2ecc71;"></div>
+                <span id="dev2Label">Dev2</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span id="dev3Label">Dev3</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #27ae60;"></div>
+                <span>Tamamlandı</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ecf0f1; border: 2px dashed #bdc3c7;"></div>
+                <span>Atanmadı</span>
+            </div>
+        </div>
+        
+        <div class="gantt-container">
+            <div class="gantt-chart" id="ganttChart">
+                <!-- Gantt chart will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependency Modal -->
+    <div id="dependencyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Bağımlılıkları Düzenle</h3>
+                <button class="modal-close" onclick="closeDependencyModal()">×</button>
+            </div>
+            <div id="dependencyList" class="dependency-list">
+                <!-- Dependency checkboxes will be inserted here -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-primary" onclick="saveDependencies()">Kaydet</button>
+                <button class="btn btn-secondary" onclick="closeDependencyModal()">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structures
+        let analysts = [
+            { id: 'analyst1', name: 'Analyst1', displayName: '', startDate: '2025-08-15' },
+            { id: 'analyst2', name: 'Analyst2', displayName: '', startDate: '2025-12-01' }
+        ];
+
+        let developers = [
+            { id: 'dev1', name: 'Dev1', displayName: '', startDate: '2025-09-01' },
+            { id: 'dev2', name: 'Dev2', displayName: '', startDate: '2025-12-01' },
+            { id: 'dev3', name: 'Dev3', displayName: '', startDate: '2026-01-02' }
+        ];
+
+        let testers = [
+            { id: 'tester1', name: 'Tester1', displayName: '', startDate: '2025-09-15' },
+            { id: 'tester2', name: 'Tester2', displayName: '', startDate: '2025-12-01' }
+        ];
+
+        let services = [
+            // FAZ 1: User, Notification, Loyalty, Payment, PaymentGW, Campaign
+            { id: 'user', category: 'Core', name: 'User', analyst: '', developer: '', tester: '', duration: 35, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'notification', category: 'Core', name: 'Notification', analyst: '', developer: '', tester: '', duration: 5, analysisDuration: 5, testDuration: 3, bufferDuration: 2, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'loyalty', category: 'Core', name: 'Loyalty', analyst: '', developer: '', tester: '', duration: 35, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'payment', category: 'Core', name: 'Payment', analyst: '', developer: '', tester: '', duration: 60, analysisDuration: 15, testDuration: 15, bufferDuration: 10, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'paymentgw', category: 'Core', name: 'PaymentGW', analyst: '', developer: '', tester: '', duration: 30, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'campaign', category: 'Core', name: 'Campaign', analyst: '', developer: '', tester: '', duration: 50, analysisDuration: 15, testDuration: 15, bufferDuration: 10, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            
+            // FAZ 2: Markup, Flight, Reservation
+            { id: 'markup', category: 'Core', name: 'Markup(Revenue)', analyst: '', developer: '', tester: '', duration: 50, analysisDuration: 10, testDuration: 12, bufferDuration: 8, dependencies: [], isCompleted: false, phase: 2, status: 'pending' },
+            { id: 'flight', category: 'Product', name: 'Flight', analyst: '', developer: '', tester: '', duration: 30, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 2, status: 'pending' },
+            { id: 'reservation', category: 'Product', name: 'Reservation x5', analyst: '', developer: '', tester: '', duration: 30, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 2, status: 'pending' },
+            
+            // FAZ 3: Hotel, Rentacar, Bus, Ferry
+            { id: 'hotel', category: 'Product', name: 'Hotel', analyst: '', developer: '', tester: '', duration: 30, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 3, status: 'pending' },
+            { id: 'rentacar', category: 'Product', name: 'Rentacar', analyst: '', developer: '', tester: '', duration: 25, analysisDuration: 8, testDuration: 8, bufferDuration: 4, dependencies: [], isCompleted: false, phase: 3, status: 'pending' },
+            { id: 'bus', category: 'Product', name: 'Bus', analyst: '', developer: '', tester: '', duration: 25, analysisDuration: 8, testDuration: 8, bufferDuration: 4, dependencies: [], isCompleted: false, phase: 3, status: 'pending' },
+            { id: 'ferry', category: 'Product', name: 'Ferry', analyst: '', developer: '', tester: '', duration: 25, analysisDuration: 8, testDuration: 8, bufferDuration: 4, dependencies: [], isCompleted: false, phase: 3, status: 'pending' },
+            
+            // FAZ 4: Geri kalan Core işleri - Audit, Template, Translate, Storage, Fraud, Reminder, HelpDesk, Exchange
+            { id: 'audit', category: 'Core', name: 'Audit', analyst: '', developer: '', tester: '', duration: 15, analysisDuration: 5, testDuration: 5, bufferDuration: 3, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'template', category: 'Core', name: 'Template', analyst: '', developer: '', tester: '', duration: 10, analysisDuration: 5, testDuration: 3, bufferDuration: 2, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'translate', category: 'Core', name: 'Translate', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 5, testDuration: 5, bufferDuration: 3, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'storage', category: 'Core', name: 'Storage', analyst: '', developer: '', tester: '', duration: 10, analysisDuration: 5, testDuration: 3, bufferDuration: 2, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'fraud', category: 'Core', name: 'Fraud', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 10, testDuration: 8, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'reminder', category: 'Core', name: 'Reminder', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 5, testDuration: 5, bufferDuration: 3, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'helpdesk', category: 'Core', name: 'HelpDesk Integration', analyst: '', developer: '', tester: '', duration: 15, analysisDuration: 5, testDuration: 5, bufferDuration: 3, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            { id: 'exchange', category: 'Core', name: 'ExchangeService', analyst: '', developer: '', tester: '', duration: 10, analysisDuration: 5, testDuration: 3, bufferDuration: 2, dependencies: [], isCompleted: false, phase: 4, status: 'pending' },
+            
+            // FAZ 5: Diğer Product işleri - Content, Recommendation
+            { id: 'content', category: 'Product', name: 'Content', analyst: '', developer: '', tester: '', duration: 25, analysisDuration: 10, testDuration: 8, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 5, status: 'pending' },
+            { id: 'recommendation', category: 'Product', name: 'Recommendation', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 8, testDuration: 7, bufferDuration: 4, dependencies: [], isCompleted: false, phase: 5, status: 'pending' },
+            
+            // Tamamlanmış servisler
+            { id: 'accounting', category: 'Core', name: 'Accounting', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'smartroute', category: 'Product', name: 'SmartRoute', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'analytics', category: 'Product', name: 'Analytics', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'hotelcontent', category: 'Product', name: 'HotelContent (Hotel Matrix)', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'flightgw', category: 'Product', name: 'FlightGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'busgw', category: 'Product', name: 'BusGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'rentacargw', category: 'Product', name: 'RentacarGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'hotelgw', category: 'Product', name: 'HotelGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'ferrygw', category: 'Product', name: 'FerryGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
+            { id: 'corporatetransaction', category: 'Product', name: 'CorporateTransaction', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' }
+        ];
+
+        // Business day calculation functions
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+        }
+
+        function addBusinessDays(startDate, days) {
+            try {
+                if (!startDate) {
+                    console.error('addBusinessDays: Invalid start date');
+                    return new Date();
+                }
+                
+                let currentDate = new Date(startDate);
+                if (isNaN(currentDate.getTime())) {
+                    console.error('addBusinessDays: Invalid date object');
+                    return new Date();
+                }
+                
+                let remainingDays = Math.max(0, parseInt(days) || 0);
+                let iterations = 0;
+                const maxIterations = remainingDays * 3; // Safety limit
+
+                while (remainingDays > 0 && iterations < maxIterations) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (!isWeekend(currentDate)) {
+                        remainingDays--;
+                    }
+                    iterations++;
+                }
+                
+                if (iterations >= maxIterations) {
+                    console.error('addBusinessDays: Maximum iterations reached');
+                }
+
+                return currentDate;
+            } catch (e) {
+                console.error('addBusinessDays error:', e);
+                return new Date();
+            }
+        }
+
+        function formatDate(date) {
+            try {
+                if (!date) return '-';
+                const d = new Date(date);
+                if (isNaN(d.getTime())) {
+                    console.error('formatDate: Invalid date', date);
+                    return '-';
+                }
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}.${month}.${year}`;
+            } catch (e) {
+                console.error('formatDate error:', e, date);
+                return '-';
+            }
+        }
+        
+        function formatDateToISO(dateString) {
+            try {
+                // Convert DD.MM.YYYY to YYYY-MM-DD for date input
+                if (!dateString || dateString === '-') return '';
+                const parts = dateString.split('.');
+                if (parts.length === 3) {
+                    const year = parts[2];
+                    const month = parts[1].padStart(2, '0');
+                    const day = parts[0].padStart(2, '0');
+                    // Validate date components
+                    if (year.length === 4 && !isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                        return `${year}-${month}-${day}`;
+                    }
+                }
+                return dateString;
+            } catch (e) {
+                console.error('formatDateToISO error:', e, dateString);
+                return '';
+            }
+        }
+        
+        function formatDateFromISO(isoString) {
+            try {
+                // Convert YYYY-MM-DD to DD.MM.YYYY
+                if (!isoString || isoString === '-') return '';
+                const d = new Date(isoString);
+                if (isNaN(d.getTime())) {
+                    console.error('formatDateFromISO: Invalid date', isoString);
+                    return '';
+                }
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}.${month}.${year}`;
+            } catch (e) {
+                console.error('formatDateFromISO error:', e, isoString);
+                return '';
+            }
+        }
+
+        function parseDate(dateString) {
+            try {
+                if (!dateString || dateString === '-') return null;
+                
+                // Check if it's in DD.MM.YYYY format
+                if (typeof dateString === 'string' && dateString.includes('.')) {
+                    const parts = dateString.split('.');
+                    if (parts.length === 3) {
+                        // Convert to ISO format for parsing
+                        const year = parseInt(parts[2]);
+                        const month = parseInt(parts[1]);
+                        const day = parseInt(parts[0]);
+                        
+                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                            const date = new Date(year, month - 1, day);
+                            if (!isNaN(date.getTime())) {
+                                return date;
+                            }
+                        }
+                    }
+                }
+                
+                // Otherwise assume ISO format YYYY-MM-DD or Date object
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    console.error('parseDate: Invalid date string', dateString);
+                    return null;
+                }
+                return date;
+            } catch (e) {
+                console.error('parseDate error:', e, dateString);
+                return null;
+            }
+        }
+
+        // SMART Schedule calculation engine - always sequential (no conflicts)
+        function calculateSchedule() {
+            calculateAutoSchedule();
+        }
+
+        // Topological sort - processes services in dependency order
+        function topologicalSort(servicesList) {
+            const sorted = [];
+            const visited = new Set();
+            const visiting = new Set();
+            const circularDeps = [];
+            
+            function visit(service, path = []) {
+                if (visited.has(service.id)) return true;
+                if (visiting.has(service.id)) {
+                    // Found circular dependency - build the cycle path
+                    const cycleStart = path.indexOf(service.id);
+                    const cycle = path.slice(cycleStart).concat([service.id]);
+                    const cycleNames = cycle.map(id => {
+                        const s = servicesList.find(srv => srv.id === id);
+                        return s ? s.name : id;
+                    });
+                    circularDeps.push(cycleNames.join(' → '));
+                    console.error('Circular dependency detected:', cycleNames.join(' → '));
+                    return false;
+                }
+                
+                visiting.add(service.id);
+                const newPath = path.concat([service.id]);
+                
+                // Visit dependencies first
+                if (service.dependencies && service.dependencies.length > 0) {
+                    for (const depId of service.dependencies) {
+                        const depService = servicesList.find(s => s.id === depId);
+                        if (depService && !visit(depService, newPath)) {
+                            return false;
+                        }
+                    }
+                }
+                
+                visiting.delete(service.id);
+                visited.add(service.id);
+                sorted.push(service);
+                return true;
+            }
+            
+            for (const service of servicesList) {
+                if (!visit(service)) {
+                    // Circular dependency found - alert user and stop
+                    alert('❌ Döngüsel Bağımlılık Hatası!\n\nAşağıdaki servislerde döngüsel bağımlılık tespit edildi:\n\n' + 
+                          circularDeps.join('\n\n') + 
+                          '\n\nLütfen bağımlılıkları düzeltin ve tekrar deneyin.');
+                    throw new Error('Circular dependency detected: ' + circularDeps.join('; '));
+                }
+            }
+            
+            return sorted;
+        }
+
+        function calculateAutoSchedule() {
+            // PHASE-INDEPENDENT SCHEDULING
+            // Phases are only for grouping/tracking, not for blocking scheduling
+            // Each resource works on their assigned tasks sequentially, regardless of phase
+            
+            // Get all active services (not completed)
+            const activeServices = services.filter(s => 
+                s.status !== 'completed' && !s.isCompleted
+            );
+            
+            if (activeServices.length === 0) {
+                // Set overall start and end dates for display
+                services.forEach(service => {
+                    if (service.status !== 'completed' && !service.isCompleted) {
+                        service.startDate = service.analysisStartDate || null;
+                        service.endDate = service.bufferEndDate || service.testEndDate || service.devEndDate || service.analysisEndDate || null;
+                    } else {
+                        service.startDate = null;
+                        service.endDate = null;
+                    }
+                });
+                return;
+            }
+            
+            // Sort services by dependencies (topological sort)
+            const sortedServices = topologicalSort(activeServices);
+            
+            // Group services by resource
+            const servicesByAnalyst = {};
+            const servicesByDeveloper = {};
+            const servicesByTester = {};
+            
+            analysts.forEach(a => servicesByAnalyst[a.id] = []);
+            developers.forEach(d => servicesByDeveloper[d.id] = []);
+            testers.forEach(t => servicesByTester[t.id] = []);
+            
+            sortedServices.forEach(service => {
+                if (service.analyst) servicesByAnalyst[service.analyst]?.push(service);
+                if (service.developer) servicesByDeveloper[service.developer]?.push(service);
+                if (service.tester) servicesByTester[service.tester]?.push(service);
+            });
+
+            // ANALYSIS: Process each analyst's queue sequentially
+            Object.keys(servicesByAnalyst).forEach(analystId => {
+                const analyst = analysts.find(a => a.id === analystId);
+                if (!analyst) return;
+
+                let currentDate = parseDate(analyst.startDate);
+                while (isWeekend(currentDate)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                servicesByAnalyst[analystId].forEach(service => {
+                    // Check dependencies - wait for dependent services to complete (including buffer)
+                    let dependencyEndDate = null;
+                    if (service.dependencies && service.dependencies.length > 0) {
+                        service.dependencies.forEach(depId => {
+                            const depService = services.find(s => s.id === depId);
+                            if (depService) {
+                                // Use bufferEndDate if available, otherwise testEndDate
+                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
+                                if (depEndDateStr) {
+                                    const depEnd = parseDate(depEndDateStr);
+                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                        dependencyEndDate = depEnd;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    if (dependencyEndDate && dependencyEndDate > currentDate) {
+                        currentDate = new Date(dependencyEndDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    }
+
+                    service.analysisStartDate = formatDate(currentDate);
+                    
+                    if (service.analysisDuration > 0) {
+                        const endDate = addBusinessDays(currentDate, service.analysisDuration - 1);
+                        service.analysisEndDate = formatDate(endDate);
+                        currentDate = new Date(endDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    } else {
+                        service.analysisEndDate = service.analysisStartDate;
+                    }
+                });
+            });
+
+            // DEVELOPMENT: Process each developer's queue sequentially
+            Object.keys(servicesByDeveloper).forEach(devId => {
+                const dev = developers.find(d => d.id === devId);
+                if (!dev) return;
+
+                let currentDate = parseDate(dev.startDate);
+                while (isWeekend(currentDate)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                servicesByDeveloper[devId].forEach(service => {
+                    // Development starts after analysis ends
+                    if (service.analysisEndDate) {
+                        let analysisEnd = parseDate(service.analysisEndDate);
+                        analysisEnd.setDate(analysisEnd.getDate() + 1);
+                        while (isWeekend(analysisEnd)) {
+                            analysisEnd.setDate(analysisEnd.getDate() + 1);
+                        }
+                        if (analysisEnd > currentDate) {
+                            currentDate = analysisEnd;
+                        }
+                    }
+
+                    // Check dependencies - wait for dependent services to complete (including buffer)
+                    let dependencyEndDate = null;
+                    if (service.dependencies && service.dependencies.length > 0) {
+                        service.dependencies.forEach(depId => {
+                            const depService = services.find(s => s.id === depId);
+                            if (depService) {
+                                // Use bufferEndDate if available, otherwise testEndDate
+                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
+                                if (depEndDateStr) {
+                                    const depEnd = parseDate(depEndDateStr);
+                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                        dependencyEndDate = depEnd;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    if (dependencyEndDate && dependencyEndDate > currentDate) {
+                        currentDate = new Date(dependencyEndDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    }
+
+                    service.devStartDate = formatDate(currentDate);
+                    
+                    if (service.duration > 0) {
+                        const endDate = addBusinessDays(currentDate, service.duration - 1);
+                        service.devEndDate = formatDate(endDate);
+                        currentDate = new Date(endDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    } else {
+                        service.devEndDate = service.devStartDate;
+                    }
+                });
+            });
+
+            // TEST: Process each tester's queue sequentially
+            Object.keys(servicesByTester).forEach(testerId => {
+                const tester = testers.find(t => t.id === testerId);
+                if (!tester) return;
+
+                let currentDate = parseDate(tester.startDate);
+                while (isWeekend(currentDate)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                servicesByTester[testerId].forEach(service => {
+                    // Test starts after development ends
+                    if (service.devEndDate) {
+                        let devEnd = parseDate(service.devEndDate);
+                        devEnd.setDate(devEnd.getDate() + 1);
+                        while (isWeekend(devEnd)) {
+                            devEnd.setDate(devEnd.getDate() + 1);
+                        }
+                        if (devEnd > currentDate) {
+                            currentDate = devEnd;
+                        }
+                    }
+
+                    // Check dependencies - wait for dependent services to complete (including buffer)
+                    let dependencyEndDate = null;
+                    if (service.dependencies && service.dependencies.length > 0) {
+                        service.dependencies.forEach(depId => {
+                            const depService = services.find(s => s.id === depId);
+                            if (depService) {
+                                // Use bufferEndDate if available, otherwise testEndDate
+                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
+                                if (depEndDateStr) {
+                                    const depEnd = parseDate(depEndDateStr);
+                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                        dependencyEndDate = depEnd;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    if (dependencyEndDate && dependencyEndDate > currentDate) {
+                        currentDate = new Date(dependencyEndDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    }
+
+                    service.testStartDate = formatDate(currentDate);
+                    
+                    if (service.testDuration > 0) {
+                        const endDate = addBusinessDays(currentDate, service.testDuration - 1);
+                        service.testEndDate = formatDate(endDate);
+                        currentDate = new Date(endDate);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    } else {
+                        service.testEndDate = service.testStartDate;
+                    }
+                    
+                    // Add buffer after test (still in tester's queue)
+                    if (service.bufferDuration > 0) {
+                        const bufferEnd = addBusinessDays(currentDate, service.bufferDuration - 1);
+                        service.bufferEndDate = formatDate(bufferEnd);
+                        currentDate = new Date(bufferEnd);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        while (isWeekend(currentDate)) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    } else {
+                        service.bufferEndDate = service.testEndDate;
+                    }
+                });
+            });
+
+            // Set overall start and end dates for display (including buffer)
+            services.forEach(service => {
+                if (service.status !== 'completed' && !service.isCompleted) {
+                    service.startDate = service.analysisStartDate || null;
+                    service.endDate = service.bufferEndDate || service.testEndDate || service.devEndDate || service.analysisEndDate || null;
+                } else {
+                    service.startDate = null;
+                    service.endDate = null;
+                }
+            });
+        }
+
+        // UI Rendering functions
+        function renderAnalysts() {
+            const grid = document.getElementById('analystGrid');
+            grid.innerHTML = analysts.map(analyst => `
+                <div class="developer-card">
+                    <label>İsim:</label>
+                    <input type="text" 
+                           value="${analyst.displayName || ''}" 
+                           placeholder="${analyst.name}"
+                           onchange="updateAnalystName('${analyst.id}', this.value)"
+                           style="margin-bottom: 10px;">
+                    <label>Başlangıç Tarihi:</label>
+                    <div class="date-display">
+                        <input type="date" 
+                               value="${analyst.startDate}" 
+                               onchange="updateAnalystStartDate('${analyst.id}', this.value)">
+                        <span class="date-display-text">${formatDateFromISO(analyst.startDate)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDevelopers() {
+            const grid = document.getElementById('developerGrid');
+            grid.innerHTML = developers.map(dev => `
+                <div class="developer-card">
+                    <label>İsim:</label>
+                    <input type="text" 
+                           value="${dev.displayName || ''}" 
+                           placeholder="${dev.name}"
+                           onchange="updateDeveloperName('${dev.id}', this.value)"
+                           style="margin-bottom: 10px;">
+                    <label>Başlangıç Tarihi:</label>
+                    <div class="date-display">
+                        <input type="date" 
+                               value="${dev.startDate}" 
+                               onchange="updateDeveloperStartDate('${dev.id}', this.value)">
+                        <span class="date-display-text">${formatDateFromISO(dev.startDate)}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Update legend labels
+            developers.forEach(dev => {
+                const label = document.getElementById(`${dev.id}Label`);
+                if (label) {
+                    label.textContent = dev.displayName || dev.name;
+                }
+            });
+        }
+
+        function renderTesters() {
+            const grid = document.getElementById('testerGrid');
+            grid.innerHTML = testers.map(tester => `
+                <div class="developer-card">
+                    <label>İsim:</label>
+                    <input type="text" 
+                           value="${tester.displayName || ''}" 
+                           placeholder="${tester.name}"
+                           onchange="updateTesterName('${tester.id}', this.value)"
+                           style="margin-bottom: 10px;">
+                    <label>Başlangıç Tarihi:</label>
+                    <div class="date-display">
+                        <input type="date" 
+                               value="${tester.startDate}" 
+                               onchange="updateTesterStartDate('${tester.id}', this.value)">
+                        <span class="date-display-text">${formatDateFromISO(tester.startDate)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderServicesTable() {
+            const tbody = document.getElementById('servicesTableBody');
+            const statusOptions = {
+                'pending': 'Beklemede',
+                'analysis': 'Analizde',
+                'development': 'Geliştirmede',
+                'testing': 'Test',
+                'integration': 'Entegrasyon',
+                'completed': 'Tamamlandı'
+            };
+            
+            tbody.innerHTML = services.map(service => {
+                // Determine row class and check for conflicts
+                let rowClass = '';
+                let conflictWarning = '';
+                
+                if (service.status === 'completed' || service.isCompleted) {
+                    rowClass = 'completed';
+                } else {
+                    // Check for resource conflicts
+                    let totalConflicts = 0;
+                    const conflictMessages = [];
+                    
+                    if (service.analyst) {
+                        const analystConflicts = checkResourceConflict(service.id, service.analyst, 'analyst');
+                        if (analystConflicts.length > 0) {
+                            totalConflicts += analystConflicts.length;
+                            conflictMessages.push(`Analist çakışması: ${analystConflicts.map(c => c.name).join(', ')}`);
+                        }
+                    }
+                    
+                    if (service.developer) {
+                        const devConflicts = checkResourceConflict(service.id, service.developer, 'developer');
+                        if (devConflicts.length > 0) {
+                            totalConflicts += devConflicts.length;
+                            conflictMessages.push(`Geliştirici çakışması: ${devConflicts.map(c => c.name).join(', ')}`);
+                        }
+                    }
+                    
+                    if (service.tester) {
+                        const testerConflicts = checkResourceConflict(service.id, service.tester, 'tester');
+                        if (testerConflicts.length > 0) {
+                            totalConflicts += testerConflicts.length;
+                            conflictMessages.push(`Test Uzmanı çakışması: ${testerConflicts.map(c => c.name).join(', ')}`);
+                        }
+                    }
+                    
+                    if (totalConflicts > 0) {
+                        rowClass = 'conflict';
+                        conflictWarning = ` <span style="color: #e67e22; font-weight: bold;" title="${conflictMessages.join('\n')}">⚠️ ${totalConflicts} çakışma</span>`;
+                    }
+                }
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td style="text-align: center;">
+                            <select onchange="updateServicePhase('${service.id}', this.value)" style="width: 70px; font-weight: 600; font-size: 12px;">
+                                <option value="1" ${service.phase === 1 ? 'selected' : ''}>Faz 1</option>
+                                <option value="2" ${service.phase === 2 ? 'selected' : ''}>Faz 2</option>
+                                <option value="3" ${service.phase === 3 ? 'selected' : ''}>Faz 3</option>
+                                <option value="4" ${service.phase === 4 ? 'selected' : ''}>Faz 4</option>
+                                <option value="5" ${service.phase === 5 ? 'selected' : ''}>Faz 5</option>
+                            </select>
+                        </td>
+                        <td><strong>${service.name}</strong> <small style="color: #7f8c8d;">(${service.category})</small>${conflictWarning}</td>
+                        <td class="date-cell" style="font-weight: 600; background: #e8f8f5;">${service.startDate || '-'}</td>
+                        <td class="date-cell" style="font-weight: 600; background: #fdeaea;">${service.endDate || '-'}</td>
+                        <td>
+                            <select onchange="updateServiceAnalyst('${service.id}', this.value)" style="width: 85px; font-size: 12px;">
+                                <option value="">-</option>
+                                ${analysts.map(analyst => 
+                                    `<option value="${analyst.id}" ${service.analyst === analyst.id ? 'selected' : ''}>
+                                        ${analyst.displayName || analyst.name}
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </td>
+                        <td>
+                            <select onchange="updateServiceDeveloper('${service.id}', this.value)" style="width: 85px; font-size: 12px;">
+                                <option value="">-</option>
+                                ${developers.map(dev => 
+                                    `<option value="${dev.id}" ${service.developer === dev.id ? 'selected' : ''}>
+                                        ${dev.displayName || dev.name}
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </td>
+                        <td>
+                            <select onchange="updateServiceTester('${service.id}', this.value)" style="width: 85px; font-size: 12px;">
+                                <option value="">-</option>
+                                ${testers.map(tester => 
+                                    `<option value="${tester.id}" ${service.tester === tester.id ? 'selected' : ''}>
+                                        ${tester.displayName || tester.name}
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" min="0" value="${service.analysisDuration || 0}" 
+                                   onchange="updateServiceAnalysisDuration('${service.id}', this.value)"
+                                   style="width: 60px;">
+                        </td>
+                        <td class="date-cell" style="font-size: 12px; line-height: 1.4;">
+                            ${service.analysisStartDate || '-'}<br/>
+                            ${service.analysisEndDate || '-'}
+                        </td>
+                        <td>
+                            <input type="number" min="0" value="${service.duration}" 
+                                   onchange="updateServiceDuration('${service.id}', this.value)"
+                                   style="width: 60px;">
+                        </td>
+                        <td class="date-cell" style="font-size: 12px; line-height: 1.4;">
+                            ${service.devStartDate || '-'}<br/>
+                            ${service.devEndDate || '-'}
+                        </td>
+                        <td>
+                            <input type="number" min="0" value="${service.testDuration || 0}" 
+                                   onchange="updateServiceTestDuration('${service.id}', this.value)"
+                                   style="width: 60px;">
+                        </td>
+                        <td class="date-cell" style="font-size: 12px; line-height: 1.4;">
+                            ${service.testStartDate || '-'}<br/>
+                            ${service.testEndDate || '-'}
+                        </td>
+                        <td>
+                            <input type="number" min="0" value="${service.bufferDuration || 0}" 
+                                   onchange="updateServiceBufferDuration('${service.id}', this.value)"
+                                   style="width: 60px;" 
+                                   title="Yedek süre (iş günü)">
+                        </td>
+                        <td style="min-width: 150px;">
+                            <button class="dependency-btn" onclick="openDependencyModal('${service.id}')">
+                                Düzenle (${(service.dependencies || []).length})
+                            </button>
+                            <div class="dependency-tags">
+                                ${(service.dependencies || []).map(depId => {
+                                    const depService = services.find(s => s.id === depId);
+                                    return depService ? `
+                                        <span class="dependency-tag">
+                                            ${depService.name}
+                                            <span class="remove" onclick="removeDependency('${service.id}', '${depId}')" title="Kaldır">×</span>
+                                        </span>
+                                    ` : '';
+                                }).join('')}
+                            </div>
+                        </td>
+                        <td>
+                            <select onchange="updateServiceStatus('${service.id}', this.value)"
+                                    style="width: 120px;">
+                                ${Object.entries(statusOptions).map(([key, label]) => 
+                                    `<option value="${key}" ${(service.status || 'pending') === key ? 'selected' : ''}>
+                                        ${label}
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderGanttChart() {
+            const ganttChart = document.getElementById('ganttChart');
+            
+            // Normalize date function to avoid timezone issues
+            const normalizeDate = (d) => {
+                if (!d) return null;
+                const date = d instanceof Date ? d : new Date(d);
+                if (isNaN(date.getTime())) return null;
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            };
+            
+            // Collect all unique start and end dates from services
+            const timelineDates = new Set();
+            const serviceDates = [];
+
+            services.forEach(service => {
+                if (service.devStartDate && service.devEndDate) {
+                    const startDate = parseDate(service.devStartDate);
+                    const endDate = parseDate(service.devEndDate);
+                    
+                    if (startDate && endDate) {
+                        const normStart = normalizeDate(startDate);
+                        const normEnd = normalizeDate(endDate);
+                        
+                        if (normStart && normEnd) {
+                            timelineDates.add(normStart.getTime());
+                            timelineDates.add(normEnd.getTime());
+                            serviceDates.push({
+                                service: service,
+                                start: normStart,
+                                end: normEnd
+                            });
+                        }
+                    }
+                }
+            });
+
+            if (timelineDates.size === 0) {
+                ganttChart.innerHTML = '<p>Şema oluşturmak için geliştiricilere servis atayın.</p>';
+                return;
+            }
+
+            // Convert to sorted array of dates
+            const sortedTimelineDates = Array.from(timelineDates)
+                .map(time => new Date(time))
+                .sort((a, b) => a.getTime() - b.getTime());
+
+            // Find overall min and max for full range calculation
+            const minDate = sortedTimelineDates[0];
+            const maxDate = sortedTimelineDates[sortedTimelineDates.length - 1];
+            
+            // Calculate total days in range for proportional bar width
+            const totalDays = Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            
+            // Calculate width per day (for proportional bar sizing)
+            const pixelsPerDay = Math.max(2, Math.floor(1200 / totalDays));
+            const timelineWidth = totalDays * pixelsPerDay;
+            
+            // Calculate width for each timeline date segment
+            const dateWidths = [];
+            for (let i = 0; i < sortedTimelineDates.length; i++) {
+                if (i === 0) {
+                    // First date: width from minDate to this date
+                    const daysFromStart = Math.ceil((sortedTimelineDates[i].getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
+                    dateWidths.push(Math.max(60, daysFromStart * pixelsPerDay));
+                } else {
+                    // Subsequent dates: width from previous date to this date
+                    const daysBetween = Math.ceil((sortedTimelineDates[i].getTime() - sortedTimelineDates[i-1].getTime()) / (1000 * 60 * 60 * 24));
+                    dateWidths.push(Math.max(60, daysBetween * pixelsPerDay));
+                }
+            }
+
+            // Turkish day names
+            const turkishDays = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+            
+            // Render header - only show important dates
+            let headerHtml = '<div class="gantt-header"><div class="gantt-row-label">Servis</div><div class="gantt-timeline" style="width: ' + timelineWidth + 'px;">';
+            
+            sortedTimelineDates.forEach((date, index) => {
+                const width = dateWidths[index];
+                headerHtml += `
+                    <div class="gantt-day ${isWeekend(date) ? 'weekend' : ''}" style="width: ${width}px; flex: 0 0 ${width}px;">
+                        <div class="gantt-day-header">${turkishDays[date.getDay()]}</div>
+                        <div class="gantt-day-date">${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}</div>
+                    </div>
+                `;
+            });
+            
+            headerHtml += '</div></div>';
+
+            // Render rows - show only DEVELOPMENT phase
+            const rows = services.map(service => {
+                let barHtml = '';
+                
+                const serviceDate = serviceDates.find(sd => sd.service === service);
+                if (serviceDate) {
+                    const { start, end } = serviceDate;
+                    
+                    // Calculate actual calendar days
+                    const calendarDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    // Calculate position: days from minDate to start
+                    const daysFromStart = Math.ceil((start.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
+                    const left = daysFromStart * pixelsPerDay;
+                    
+                    // Calculate width: actual calendar days
+                    const width = calendarDays * pixelsPerDay;
+                    
+                    let barClass = 'unassigned';
+                    if (service.isCompleted || service.status === 'completed') {
+                        barClass = 'completed';
+                    } else if (service.developer) {
+                        barClass = service.developer;
+                    }
+                    
+                    barHtml = `
+                        <div class="gantt-bar ${barClass}" 
+                             style="left: ${left}px; width: ${width}px;"
+                             title="${service.name}\nGeliştirme: ${service.devStartDate} - ${service.devEndDate}\nİş Günü: ${service.duration}g\nTakvim Günü: ${calendarDays}g">
+                            ${calendarDays}g
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="gantt-row">
+                        <div class="gantt-row-label">${service.name}</div>
+                        <div class="gantt-timeline" style="width: ${timelineWidth}px;">
+                            <div class="gantt-bars">
+                                ${barHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            ganttChart.innerHTML = headerHtml + rows;
+        }
+
+        function updateStatistics() {
+            const total = services.length;
+            const completed = services.filter(s => s.status === 'completed' || s.isCompleted).length;
+            const inProgress = services.filter(s => s.status !== 'completed' && !s.isCompleted && s.developer).length;
+            
+            let totalDays = 0;
+            services.forEach(service => {
+                if (service.status !== 'completed' && !service.isCompleted) {
+                    totalDays += service.duration;
+                }
+            });
+
+            // Calculate project start and end dates
+            let projectStart = null;
+            let projectEnd = null;
+
+            // Project start is the earliest resource start date
+            analysts.forEach(analyst => {
+                const date = parseDate(analyst.startDate);
+                if (date && (!projectStart || date < projectStart)) {
+                    projectStart = date;
+                }
+            });
+            
+            developers.forEach(dev => {
+                const date = parseDate(dev.startDate);
+                if (date && (!projectStart || date < projectStart)) {
+                    projectStart = date;
+                }
+            });
+            
+            testers.forEach(tester => {
+                const date = parseDate(tester.startDate);
+                if (date && (!projectStart || date < projectStart)) {
+                    projectStart = date;
+                }
+            });
+
+            // Project end is the latest service end date (excluding completed ones)
+            services.forEach(service => {
+                if (service.endDate && service.status !== 'completed' && !service.isCompleted) {
+                    const endDate = parseDate(service.endDate);
+                    if (endDate && (!projectEnd || endDate > projectEnd)) {
+                        projectEnd = endDate;
+                    }
+                }
+            });
+
+            // Calculate phase dates and counts
+            for (let phase = 1; phase <= 5; phase++) {
+                const phaseServices = services.filter(s => s.phase === phase && s.status !== 'completed' && !s.isCompleted);
+                
+                // Update count
+                const countEl = document.getElementById(`phase${phase}Count`);
+                if (countEl) countEl.textContent = `(${phaseServices.length})`;
+                
+                if (phaseServices.length > 0) {
+                    let phaseStart = null;
+                    let phaseEnd = null;
+                    
+                    phaseServices.forEach(service => {
+                        if (service.startDate) {
+                            const start = parseDate(service.startDate);
+                            if (start && (!phaseStart || start < phaseStart)) {
+                                phaseStart = start;
+                            }
+                        }
+                        if (service.endDate) {
+                            const end = parseDate(service.endDate);
+                            if (end && (!phaseEnd || end > phaseEnd)) {
+                                phaseEnd = end;
+                            }
+                        }
+                    });
+                    
+                    const phaseText = phaseStart && phaseEnd ? 
+                        `${formatDate(phaseStart)} → ${formatDate(phaseEnd)}` : '- → -';
+                    const datesEl = document.getElementById(`phase${phase}Dates`);
+                    if (datesEl) datesEl.textContent = phaseText;
+                } else {
+                    const datesEl = document.getElementById(`phase${phase}Dates`);
+                    if (datesEl) datesEl.textContent = '- → -';
+                }
+            }
+
+            // Update statistics (only update elements that exist)
+            const totalServicesEl = document.getElementById('totalServices');
+            const completedServicesEl = document.getElementById('completedServices');
+            const projectStartEl = document.getElementById('projectStart');
+            const projectEndEl = document.getElementById('projectEnd');
+            
+            if (completedServicesEl) completedServicesEl.textContent = completed;
+            if (projectStartEl) projectStartEl.textContent = projectStart ? formatDate(projectStart) : '-';
+            if (projectEndEl) projectEndEl.textContent = projectEnd ? formatDate(projectEnd) : '-';
+        }
+
+        // Update functions
+        function updateAnalystName(analystId, newName) {
+            const analyst = analysts.find(a => a.id === analystId);
+            if (analyst) {
+                analyst.displayName = newName.trim();
+                renderAnalysts();
+                renderServicesTable(); // Update dropdowns
+            }
+        }
+
+        function updateAnalystStartDate(analystId, newDate) {
+            const analyst = analysts.find(a => a.id === analystId);
+            if (analyst) {
+                analyst.startDate = newDate;
+                recalculateAll();
+                renderAnalysts();
+            }
+        }
+
+        function updateDeveloperName(devId, newName) {
+            const dev = developers.find(d => d.id === devId);
+            if (dev) {
+                dev.displayName = newName.trim();
+                renderDevelopers();
+                renderServicesTable(); // Update dropdowns
+            }
+        }
+
+        function updateDeveloperStartDate(devId, newDate) {
+            const dev = developers.find(d => d.id === devId);
+            if (dev) {
+                dev.startDate = newDate;
+                recalculateAll();
+                renderDevelopers();
+            }
+        }
+
+        function updateTesterName(testerId, newName) {
+            const tester = testers.find(t => t.id === testerId);
+            if (tester) {
+                tester.displayName = newName.trim();
+                renderTesters();
+                renderServicesTable(); // Update dropdowns
+            }
+        }
+
+        function updateTesterStartDate(testerId, newDate) {
+            const tester = testers.find(t => t.id === testerId);
+            if (tester) {
+                tester.startDate = newDate;
+                recalculateAll();
+                renderTesters();
+            }
+        }
+
+        function updateServicePhase(serviceId, phaseValue) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.phase = parseInt(phaseValue);
+                recalculateAll();
+            }
+        }
+
+        function updateServiceAnalyst(serviceId, analystId) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.analyst = analystId;
+                recalculateAll();
+            }
+        }
+
+        function updateServiceDeveloper(serviceId, developerId) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.developer = developerId;
+                recalculateAll();
+            }
+        }
+        
+        function getDeveloperName(devId) {
+            const dev = developers.find(d => d.id === devId);
+            return dev ? (dev.displayName || dev.name) : devId;
+        }
+        
+        function getAnalystName(analystId) {
+            const analyst = analysts.find(a => a.id === analystId);
+            return analyst ? analyst.name : analystId;
+        }
+        
+        function getTesterName(testerId) {
+            const tester = testers.find(t => t.id === testerId);
+            return tester ? tester.name : testerId;
+        }
+        
+        function checkResourceConflict(currentServiceId, resourceId, resourceType) {
+            const conflicts = [];
+            const currentService = services.find(s => s.id === currentServiceId);
+            if (!currentService) return conflicts;
+            
+            // Get current service's date range for this resource type
+            let currentStart = null;
+            let currentEnd = null;
+            
+            if (resourceType === 'developer') {
+                currentStart = currentService.devStartDate;
+                currentEnd = currentService.devEndDate;
+            } else if (resourceType === 'analyst') {
+                currentStart = currentService.analysisStartDate;
+                currentEnd = currentService.analysisEndDate;
+            } else if (resourceType === 'tester') {
+                currentStart = currentService.testStartDate;
+                currentEnd = currentService.testEndDate;
+            }
+            
+            // No dates yet (service not scheduled), no conflict
+            if (!currentStart || !currentEnd) return conflicts;
+            
+            const currentStartDate = parseDate(currentStart);
+            const currentEndDate = parseDate(currentEnd);
+            
+            if (!currentStartDate || !currentEndDate) return conflicts;
+            
+            // Check all other services for date overlap
+            services.forEach(service => {
+                if (service.id === currentServiceId) return;
+                if (service.status === 'completed' || service.isCompleted) return;
+                
+                let resourceMatch = false;
+                let startDate = null;
+                let endDate = null;
+                
+                if (resourceType === 'developer') {
+                    resourceMatch = service.developer === resourceId;
+                    startDate = service.devStartDate;
+                    endDate = service.devEndDate;
+                } else if (resourceType === 'analyst') {
+                    resourceMatch = service.analyst === resourceId;
+                    startDate = service.analysisStartDate;
+                    endDate = service.analysisEndDate;
+                } else if (resourceType === 'tester') {
+                    resourceMatch = service.tester === resourceId;
+                    startDate = service.testStartDate;
+                    endDate = service.testEndDate;
+                }
+                
+                if (resourceMatch && startDate && endDate) {
+                    const otherStart = parseDate(startDate);
+                    const otherEnd = parseDate(endDate);
+                    
+                    if (!otherStart || !otherEnd) return;
+                    
+                    // Check if date ranges overlap (TRUE overlap, not sequential)
+                    // Overlap: start1 < end2 AND start2 < end1 (strictly less than for sequential tasks)
+                    const overlap = (currentStartDate < otherEnd && otherStart < currentEndDate);
+                    
+                    if (overlap) {
+                        conflicts.push({
+                            name: service.name,
+                            devStartDate: startDate,
+                            devEndDate: endDate
+                        });
+                    }
+                }
+            });
+            
+            return conflicts;
+        }
+
+        function updateServiceTester(serviceId, testerId) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.tester = testerId;
+                recalculateAll();
+            }
+        }
+
+        function updateServiceDuration(serviceId, duration) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.duration = parseInt(duration) || 0;
+                recalculateAll();
+            }
+        }
+        
+        function updateServiceAnalysisDuration(serviceId, duration) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.analysisDuration = parseInt(duration) || 0;
+                // Recalculate all dates when analysis duration changes
+                recalculateAll();
+            }
+        }
+        
+        function updateServiceTestDuration(serviceId, duration) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.testDuration = parseInt(duration) || 0;
+                // Recalculate all dates when test duration changes
+                recalculateAll();
+            }
+        }
+        
+        function updateServiceBufferDuration(serviceId, duration) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.bufferDuration = parseInt(duration) || 0;
+                // Recalculate all dates when buffer duration changes
+                recalculateAll();
+            }
+        }
+        
+        function updateServiceStatus(serviceId, status) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.status = status;
+                // Don't automatically set isCompleted, keep it separate
+                // isCompleted is only for services that were already completed at project start
+                recalculateAll();
+            }
+        }
+
+        function updateServiceDependencies(serviceId, selectElement) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                const selected = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+                service.dependencies = selected;
+                recalculateAll();
+            }
+        }
+
+        // Dependency modal functions
+        let currentEditingServiceId = null;
+
+        function openDependencyModal(serviceId) {
+            currentEditingServiceId = serviceId;
+            const service = services.find(s => s.id === serviceId);
+            if (!service) return;
+
+            const modal = document.getElementById('dependencyModal');
+            const list = document.getElementById('dependencyList');
+
+            // Create checkbox list
+            list.innerHTML = services
+                .filter(s => s.id !== serviceId)
+                .map(s => {
+                    const isChecked = (service.dependencies || []).includes(s.id);
+                    return `
+                        <div class="dependency-item">
+                            <input type="checkbox" 
+                                   id="dep_${s.id}" 
+                                   value="${s.id}" 
+                                   ${isChecked ? 'checked' : ''}>
+                            <label for="dep_${s.id}">
+                                <strong>${s.name}</strong>
+                                <small style="color: #7f8c8d;"> (${s.category})</small>
+                            </label>
+                        </div>
+                    `;
+                }).join('');
+
+            modal.style.display = 'block';
+        }
+
+        function closeDependencyModal() {
+            document.getElementById('dependencyModal').style.display = 'none';
+            currentEditingServiceId = null;
+        }
+
+        function saveDependencies() {
+            if (!currentEditingServiceId) return;
+
+            const service = services.find(s => s.id === currentEditingServiceId);
+            if (!service) return;
+
+            const checkboxes = document.querySelectorAll('#dependencyList input[type="checkbox"]:checked');
+            service.dependencies = Array.from(checkboxes).map(cb => cb.value);
+
+            closeDependencyModal();
+            recalculateAll();
+        }
+
+        function removeDependency(serviceId, depId) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                service.dependencies = (service.dependencies || []).filter(d => d !== depId);
+                recalculateAll();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('dependencyModal');
+            if (event.target === modal) {
+                closeDependencyModal();
+            }
+        };
+
+        function recalculateAll() {
+            calculateSchedule();
+            renderServicesTable();
+            renderGanttChart();
+            updateStatistics();
+        }
+
+        // Local storage functions
+        // Current data version for localStorage
+        const DATA_VERSION = '2.0';
+
+        function saveToLocalStorage() {
+            try {
+                const data = {
+                    version: DATA_VERSION,
+                    timestamp: new Date().toISOString(),
+                    analysts: analysts,
+                    developers: developers,
+                    testers: testers,
+                    services: services
+                };
+                localStorage.setItem('ganttData', JSON.stringify(data));
+                alert('✅ İlerleme başarıyla kaydedildi!');
+            } catch (e) {
+                console.error('Save to localStorage failed:', e);
+                alert('❌ Kaydetme hatası: ' + e.message);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const dataStr = localStorage.getItem('ganttData');
+                if (!dataStr) {
+                    alert('⚠️ Kaydedilmiş veri bulunamadı.');
+                    return;
+                }
+                
+                const parsed = JSON.parse(dataStr);
+                
+                // Check version and migrate if needed
+                if (!parsed.version || parsed.version !== DATA_VERSION) {
+                    
+                    // Version 1.0 to 2.0 migration (no structure changes, just add version)
+                    if (!parsed.version) {
+                        // Old format without version - compatible with current format
+                    }
+                }
+                
+                // Load data with validation
+                if (parsed.analysts && Array.isArray(parsed.analysts)) {
+                    analysts = parsed.analysts;
+                }
+                
+                if (parsed.developers && Array.isArray(parsed.developers)) {
+                    developers = parsed.developers;
+                }
+                
+                if (parsed.testers && Array.isArray(parsed.testers)) {
+                    testers = parsed.testers;
+                }
+                
+                if (parsed.services && Array.isArray(parsed.services)) {
+                    services = parsed.services;
+                }
+                
+                renderAnalysts();
+                renderDevelopers();
+                renderTesters();
+                recalculateAll();
+                
+                let message = '✅ İlerleme başarıyla yüklendi!';
+                if (parsed.timestamp) {
+                    const saveDate = new Date(parsed.timestamp);
+                    message += '\n\nKayıt tarihi: ' + formatDate(saveDate);
+                }
+                alert(message);
+            } catch (e) {
+                console.error('Load from localStorage failed:', e);
+                alert('❌ Yükleme hatası: ' + e.message + '\n\nVeri bozuk olabilir. Varsayılana sıfırlamayı deneyin.');
+            }
+        }
+
+        function resetData() {
+            if (confirm('Tüm verileri varsayılana sıfırlamak istediğinizden emin misiniz?\n\nTarayıcıya kaydettiğiniz veriler de silinecek!')) {
+                // Clear localStorage
+                localStorage.removeItem('ganttData');
+                localStorage.removeItem('lastExport');
+                // Reload page to load default data
+                location.reload();
+            }
+        }
+
+        // Export/Import functions for file sharing
+        function exportToFile() {
+            const data = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                analysts: analysts,
+                developers: developers,
+                testers: testers,
+                services: services
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.download = `anka-gantt-${timestamp}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            alert('✅ Dosya indirildi! Bu dosyayı başkalarıyla paylaşabilirsiniz.');
+            
+            // Track export
+            _trackExport();
+        }
+
+        function importFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validate data
+                    if (!data.analysts || !data.developers || !data.testers || !data.services) {
+                        alert('⚠️ Geçersiz dosya formatı!');
+                        return;
+                    }
+                    
+                    // Load data
+                    analysts = data.analysts;
+                    developers = data.developers;
+                    testers = data.testers;
+                    services = data.services;
+                    
+                    // Refresh UI
+                    renderAnalysts();
+                    renderDevelopers();
+                    renderTesters();
+                    recalculateAll();
+                    
+                    let message = '✅ Dosya başarıyla yüklendi!';
+                    if (data.exportDate) {
+                        const exportDate = new Date(data.exportDate);
+                        message += `\n\nKayıt tarihi: ${formatDate(exportDate)}`;
+                    }
+                    alert(message);
+                    
+                } catch (error) {
+                    alert('❌ Dosya yüklenirken hata oluştu: ' + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+            // Reset input so same file can be loaded again
+            event.target.value = '';
+        }
+
+        // Change tracking removed - user will save manually when needed
+
+        // Scheduling is always automatic and smart - no toggle needed
+
+        // AUTOMATIC RESOURCE OPTIMIZATION ALGORITHM
+        function autoOptimizeResources() {
+            if (!confirm('🚀 Otomatik Kaynak Optimizasyonu\n\nBu işlem tüm analyst, developer ve tester atamalarını otomatik olarak optimize edecek.\n\nMevcut atamalarınız silinecek!\n\nDevam etmek istiyor musunuz?')) {
+                return;
+            }
+
+            autoOptimizeResourcesSilent();
+            alert('✅ Kaynak optimizasyonu tamamlandı!\n\nTüm atamalar otomatik olarak optimize edildi.\nProje bitiş tarihi minimize edildi.');
+        }
+
+        function autoOptimizeResourcesSilent() {
+
+            // Clear all resource assignments
+            services.forEach(service => {
+                if (!service.isCompleted && service.status !== 'completed') {
+                    service.analyst = '';
+                    service.developer = '';
+                    service.tester = '';
+                }
+            });
+
+            // Get active services (exclude completed)
+            const activeServices = services.filter(s => !s.isCompleted && s.status !== 'completed');
+
+            // Sort services by dependency order (topological sort)
+            const sortedServices = topologicalSort(activeServices);
+
+            // Track when each resource will be available
+            const resourceAvailability = {
+                analysts: {},
+                developers: {},
+                testers: {}
+            };
+
+            // Initialize resource availability with their start dates
+            analysts.forEach(a => {
+                resourceAvailability.analysts[a.id] = parseDate(a.startDate);
+            });
+            developers.forEach(d => {
+                resourceAvailability.developers[d.id] = parseDate(d.startDate);
+            });
+            testers.forEach(t => {
+                resourceAvailability.testers[t.id] = parseDate(t.startDate);
+            });
+
+            // We need to calculate dates as we assign to track dependencies properly
+            // Process each service in dependency order
+            sortedServices.forEach(service => {
+
+                // Calculate dependency constraint date
+                let dependencyConstraint = null;
+                if (service.dependencies && service.dependencies.length > 0) {
+                    service.dependencies.forEach(depId => {
+                        const depService = services.find(s => s.id === depId);
+                        if (depService) {
+                            // For optimization, we track when dependencies will be done
+                            // We'll calculate this based on assigned resources
+                            const depAnalystAvail = depService.analyst ? resourceAvailability.analysts[depService.analyst] : null;
+                            const depDevAvail = depService.developer ? resourceAvailability.developers[depService.developer] : null;
+                            const depTesterAvail = depService.tester ? resourceAvailability.testers[depService.tester] : null;
+                            
+                            // Dependency is done when test+buffer completes
+                            let depDoneDate = depTesterAvail || depDevAvail || depAnalystAvail;
+                            
+                            if (depDoneDate && (!dependencyConstraint || depDoneDate > dependencyConstraint)) {
+                                dependencyConstraint = new Date(depDoneDate);
+                            }
+                        }
+                    });
+                }
+
+                // 1. ASSIGN ANALYST - find earliest available analyst
+                if (service.analysisDuration > 0) {
+                    let earliestAnalyst = null;
+                    let earliestDate = null;
+
+                    Object.entries(resourceAvailability.analysts).forEach(([analystId, availableDate]) => {
+                        let startDate = new Date(availableDate);
+
+                        // Apply dependency constraint
+                        if (dependencyConstraint && dependencyConstraint > startDate) {
+                            startDate = new Date(dependencyConstraint);
+                        }
+
+                        if (!earliestDate || startDate < earliestDate) {
+                            earliestDate = startDate;
+                            earliestAnalyst = analystId;
+                        }
+                    });
+
+                    if (earliestAnalyst) {
+                        service.analyst = earliestAnalyst;
+                        // Calculate when this analyst will be free
+                        let analysisStart = new Date(earliestDate);
+                        while (isWeekend(analysisStart)) {
+                            analysisStart.setDate(analysisStart.getDate() + 1);
+                        }
+                        const analysisEnd = addBusinessDays(analysisStart, service.analysisDuration - 1);
+                        analysisEnd.setDate(analysisEnd.getDate() + 1);
+                        while (isWeekend(analysisEnd)) {
+                            analysisEnd.setDate(analysisEnd.getDate() + 1);
+                        }
+                        resourceAvailability.analysts[earliestAnalyst] = analysisEnd;
+                    }
+                }
+
+                // 2. ASSIGN DEVELOPER - find earliest available developer
+                if (service.duration > 0) {
+                    let earliestDeveloper = null;
+                    let earliestDate = null;
+
+                    Object.entries(resourceAvailability.developers).forEach(([devId, availableDate]) => {
+                        let startDate = new Date(availableDate);
+
+                        // Apply dependency constraint
+                        if (dependencyConstraint && dependencyConstraint > startDate) {
+                            startDate = new Date(dependencyConstraint);
+                        }
+
+                        if (!earliestDate || startDate < earliestDate) {
+                            earliestDate = startDate;
+                            earliestDeveloper = devId;
+                        }
+                    });
+
+                    if (earliestDeveloper) {
+                        service.developer = earliestDeveloper;
+                        // Calculate when this developer will be free
+                        let devStart = new Date(earliestDate);
+                        while (isWeekend(devStart)) {
+                            devStart.setDate(devStart.getDate() + 1);
+                        }
+                        const devEnd = addBusinessDays(devStart, service.duration - 1);
+                        devEnd.setDate(devEnd.getDate() + 1);
+                        while (isWeekend(devEnd)) {
+                            devEnd.setDate(devEnd.getDate() + 1);
+                        }
+                        resourceAvailability.developers[earliestDeveloper] = devEnd;
+                    }
+                }
+
+                // 3. ASSIGN TESTER - find earliest available tester
+                if (service.testDuration > 0) {
+                    let earliestTester = null;
+                    let earliestDate = null;
+
+                    Object.entries(resourceAvailability.testers).forEach(([testerId, availableDate]) => {
+                        let startDate = new Date(availableDate);
+
+                        // Apply dependency constraint
+                        if (dependencyConstraint && dependencyConstraint > startDate) {
+                            startDate = new Date(dependencyConstraint);
+                        }
+
+                        if (!earliestDate || startDate < earliestDate) {
+                            earliestDate = startDate;
+                            earliestTester = testerId;
+                        }
+                    });
+
+                    if (earliestTester) {
+                        service.tester = earliestTester;
+                        // Calculate when this tester will be free (including buffer)
+                        let testStart = new Date(earliestDate);
+                        while (isWeekend(testStart)) {
+                            testStart.setDate(testStart.getDate() + 1);
+                        }
+                        let testEnd = addBusinessDays(testStart, service.testDuration - 1);
+                        // Add buffer
+                        if (service.bufferDuration > 0) {
+                            testEnd = addBusinessDays(testEnd, service.bufferDuration);
+                        }
+                        testEnd.setDate(testEnd.getDate() + 1);
+                        while (isWeekend(testEnd)) {
+                            testEnd.setDate(testEnd.getDate() + 1);
+                        }
+                        resourceAvailability.testers[earliestTester] = testEnd;
+                    }
+                }
+            });
+
+            // Recalculate schedules with new assignments
+            recalculateAll();
+        }
+
+        // Initialize
+        function init() {
+            // Try to load from localStorage first
+            const savedData = localStorage.getItem('ganttData');
+            let loadedFromStorage = false;
+            
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed.analysts) analysts = parsed.analysts;
+                    if (parsed.developers) developers = parsed.developers;
+                    if (parsed.testers) testers = parsed.testers;
+                    if (parsed.services) services = parsed.services;
+                    loadedFromStorage = true;
+                } catch (e) {
+                    console.error('localStorage yükleme hatası:', e);
+                }
+            }
+            
+            // If loading from defaults (not from storage), auto-optimize
+            if (!loadedFromStorage) {
+                autoOptimizeResourcesSilent();
+            }
+            
+            // Render UI
+            renderAnalysts();
+            renderDevelopers();
+            renderTesters();
+            calculateSchedule();
+            renderServicesTable();
+            renderGanttChart();
+            updateStatistics();
+        }
+
+        // Track last export date
+        const _trackExport = function() {
+            localStorage.setItem('lastExport', new Date().toISOString());
+        };
+
+        // Excel Export/Import functions
+        function exportToExcel() {
+            // Prepare CSV data
+            const headers = [
+                'ID', 'Kategori', 'Servis Adı', 'Faz', 
+                'Analist', 'Geliştirici', 'Test Uzmanı',
+                'Analiz Süresi (gün)', 'Geliştirme Süresi (gün)', 'Test Süresi (gün)', 'Buffer (gün)',
+                'Bağımlılıklar', 'Durum',
+                'Genel Başlangıç', 'Genel Bitiş',
+                'Analiz Başlangıç', 'Analiz Bitiş', 
+                'Geliştirme Başlangıç', 'Geliştirme Bitiş',
+                'Test Başlangıç', 'Test Bitiş'
+            ];
+            
+            const rows = services.map(service => [
+                service.id,
+                service.category,
+                service.name,
+                service.phase || 1,
+                service.analyst || '',
+                service.developer || '',
+                service.tester || '',
+                service.analysisDuration || 0,
+                service.duration || 0,
+                service.testDuration || 0,
+                service.bufferDuration || 0,
+                (service.dependencies || []).join(';'),
+                service.status || 'pending',
+                service.startDate || '',
+                service.endDate || '',
+                service.analysisStartDate || '',
+                service.analysisEndDate || '',
+                service.devStartDate || '',
+                service.devEndDate || '',
+                service.testStartDate || '',
+                service.testEndDate || ''
+            ]);
+            
+            // Convert to CSV
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => {
+                    // Escape commas and quotes in cell values
+                    const str = String(cell);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                }).join(','))
+            ].join('\n');
+            
+            // Add BOM for Excel UTF-8 support
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.download = `anka-gantt-${timestamp}.csv`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            alert('✅ Excel dosyası indirildi!\n\n📝 Notlar:\n- Excel\'de açın ve düzenleyin\n- Sütun başlıklarını değiştirmeyin\n- Kaydettiğinizde CSV formatında kaydedin\n- "Excel\'den Yükle" ile geri yükleyin');
+            
+            // Track export
+            _trackExport();
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check if Papa Parse is available
+            if (typeof Papa === 'undefined') {
+                alert('❌ CSV parser yüklenemedi. Lütfen sayfayı yenileyin ve tekrar deneyin.');
+                console.error('Papa Parse library not loaded');
+                return;
+            }
+            
+            Papa.parse(file, {
+                header: false,
+                skipEmptyLines: true,
+                encoding: 'UTF-8',
+                complete: function(results) {
+                    try {
+                        if (!results.data || results.data.length < 2) {
+                            alert('⚠️ Dosya boş veya geçersiz!');
+                            return;
+                        }
+                        
+                        const headers = results.data[0];
+                        
+                        let updatedCount = 0;
+                        
+                        // Parse data rows (skip header)
+                        for (let i = 1; i < results.data.length; i++) {
+                            const values = results.data[i];
+                            
+                            if (values.length < 8) {
+                                continue;
+                            }
+                            
+                            const serviceId = values[0];
+                            const service = services.find(s => s.id === serviceId);
+                            
+                            if (service) {
+                                // Update service from CSV
+                                service.category = values[1] || service.category;
+                                service.name = values[2] || service.name;
+                                service.phase = parseInt(values[3]) || service.phase || 1;
+                                service.analyst = values[4] || '';
+                                service.developer = values[5] || '';
+                                service.tester = values[6] || '';
+                                service.analysisDuration = parseInt(values[7]) || 0;
+                                service.duration = parseInt(values[8]) || 0;
+                                service.testDuration = parseInt(values[9]) || 0;
+                                service.bufferDuration = parseInt(values[10]) || 0;
+                                service.dependencies = values[11] ? values[11].split(';').filter(d => d.trim()) : [];
+                                service.status = values[12] || 'pending';
+                                updatedCount++;
+                            }
+                        }
+                        
+                        // Refresh UI
+                        recalculateAll();
+                        
+                        alert(`✅ Excel dosyası başarıyla yüklendi!\n\n${updatedCount} servis güncellendi.\nTüm tarihler otomatik olarak yeniden hesaplandı.`);
+                        
+                    } catch (error) {
+                        alert('❌ Excel dosyası yüklenirken hata oluştu:\n\n' + error.message);
+                        console.error('Import error:', error);
+                    }
+                },
+                error: function(error) {
+                    alert('❌ CSV parse hatası:\n\n' + error.message);
+                    console.error('Papa Parse error:', error);
+                }
+            });
+            
+            event.target.value = '';
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
+
