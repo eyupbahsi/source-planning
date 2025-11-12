@@ -162,6 +162,24 @@
             z-index: 10;
         }
 
+        th input[type="number"] {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 3px;
+        }
+
+        th input[type="number"]:focus {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border-color: #3498db;
+            outline: none;
+        }
+
+        th input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
         tr:hover {
             background: #f8f9fa;
         }
@@ -638,8 +656,22 @@
                         <th rowspan="2">Test Uzmanı</th>
                         <th colspan="2">Analiz</th>
                         <th colspan="2">Geliştirme</th>
-                        <th colspan="2">Test</th>
-                        <th rowspan="2">Buffer</th>
+                        <th colspan="2">
+                            Test
+                            <input type="number" id="globalTestDuration" min="0" placeholder="Tümü" 
+                                   style="width: 60px; padding: 2px; font-size: 11px; text-align: center; margin-left: 5px;"
+                                   title="Tüm servisler için test süresi (boş bırakırsanız default değerler kullanılır)"
+                                   onchange="updateGlobalTestDuration(this.value)"
+                                   onblur="if(this.value === '') updateGlobalTestDuration('')">
+                        </th>
+                        <th rowspan="2">
+                            Buffer
+                            <input type="number" id="globalBufferDuration" min="0" placeholder="Tümü" 
+                                   style="width: 60px; padding: 2px; font-size: 11px; text-align: center; margin-left: 5px;"
+                                   title="Tüm servisler için buffer süresi (boş bırakırsanız default değerler kullanılır)"
+                                   onchange="updateGlobalBufferDuration(this.value)"
+                                   onblur="if(this.value === '') updateGlobalBufferDuration('')">
+                        </th>
                         <th rowspan="2">Bağımlılıklar</th>
                         <th rowspan="2">Durum</th>
                     </tr>
@@ -729,6 +761,10 @@
             { id: 'tester2', name: 'Tester2', displayName: '', startDate: '2025-12-01' }
         ];
 
+        // Global test and buffer duration overrides
+        let globalTestDuration = null; // null means use default values
+        let globalBufferDuration = null; // null means use default values
+
         let services = [
             // FAZ 1: User, Notification, Loyalty, Payment, PaymentGW, Campaign
             { id: 'user', category: 'Core', name: 'User', analyst: '', developer: '', tester: '', duration: 35, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
@@ -775,6 +811,21 @@
             { id: 'ferrygw', category: 'Product', name: 'FerryGW', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' },
             { id: 'corporatetransaction', category: 'Product', name: 'CorporateTransaction', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' }
         ];
+
+        // Helper functions to get test and buffer duration (considering global overrides)
+        function getTestDuration(service) {
+            if (globalTestDuration !== null && !service.isCompleted) {
+                return globalTestDuration;
+            }
+            return service.testDuration || 0;
+        }
+
+        function getBufferDuration(service) {
+            if (globalBufferDuration !== null && !service.isCompleted) {
+                return globalBufferDuration;
+            }
+            return service.bufferDuration || 0;
+        }
 
         // Business day calculation functions
         function isWeekend(date) {
@@ -1181,8 +1232,9 @@
 
                     service.testStartDate = formatDate(currentDate);
                     
-                    if (service.testDuration > 0) {
-                        const endDate = addBusinessDays(currentDate, service.testDuration - 1);
+                    const testDuration = getTestDuration(service);
+                    if (testDuration > 0) {
+                        const endDate = addBusinessDays(currentDate, testDuration - 1);
                         service.testEndDate = formatDate(endDate);
                         currentDate = new Date(endDate);
                         currentDate.setDate(currentDate.getDate() + 1);
@@ -1194,8 +1246,9 @@
                     }
                     
                     // Add buffer after test (still in tester's queue)
-                    if (service.bufferDuration > 0) {
-                        const bufferEnd = addBusinessDays(currentDate, service.bufferDuration - 1);
+                    const bufferDuration = getBufferDuration(service);
+                    if (bufferDuration > 0) {
+                        const bufferEnd = addBusinessDays(currentDate, bufferDuration - 1);
                         service.bufferEndDate = formatDate(bufferEnd);
                         currentDate = new Date(bufferEnd);
                         currentDate.setDate(currentDate.getDate() + 1);
@@ -1408,7 +1461,7 @@
                             ${service.devEndDate || '-'}
                         </td>
                         <td>
-                            <input type="number" min="0" value="${service.testDuration || 0}" 
+                            <input type="number" min="0" value="${getTestDuration(service)}" 
                                    onchange="updateServiceTestDuration('${service.id}', this.value)"
                                    style="width: 60px;">
                         </td>
@@ -1417,7 +1470,7 @@
                             ${service.testEndDate || '-'}
                         </td>
                         <td>
-                            <input type="number" min="0" value="${service.bufferDuration || 0}" 
+                            <input type="number" min="0" value="${getBufferDuration(service)}" 
                                    onchange="updateServiceBufferDuration('${service.id}', this.value)"
                                    style="width: 60px;" 
                                    title="Yedek süre (iş günü)">
@@ -1898,6 +1951,28 @@
                 recalculateAll();
             }
         }
+
+        function updateGlobalTestDuration(value) {
+            if (value === '' || value === null || value === undefined) {
+                globalTestDuration = null;
+            } else {
+                globalTestDuration = parseInt(value) || 0;
+            }
+            // Recalculate all dates with new global test duration
+            recalculateAll();
+            renderServicesTable();
+        }
+
+        function updateGlobalBufferDuration(value) {
+            if (value === '' || value === null || value === undefined) {
+                globalBufferDuration = null;
+            } else {
+                globalBufferDuration = parseInt(value) || 0;
+            }
+            // Recalculate all dates with new global buffer duration
+            recalculateAll();
+            renderServicesTable();
+        }
         
         function updateServiceStatus(serviceId, status) {
             const service = services.find(s => s.id === serviceId);
@@ -2004,7 +2079,9 @@
                     analysts: analysts,
                     developers: developers,
                     testers: testers,
-                    services: services
+                    services: services,
+                    globalTestDuration: globalTestDuration,
+                    globalBufferDuration: globalBufferDuration
                 };
                 localStorage.setItem('ganttData', JSON.stringify(data));
                 alert('✅ İlerleme başarıyla kaydedildi!');
@@ -2048,6 +2125,23 @@
                 
                 if (parsed.services && Array.isArray(parsed.services)) {
                     services = parsed.services;
+                }
+                
+                // Load global test and buffer duration if available
+                if (parsed.globalTestDuration !== undefined) {
+                    globalTestDuration = parsed.globalTestDuration;
+                    const globalTestInput = document.getElementById('globalTestDuration');
+                    if (globalTestInput) {
+                        globalTestInput.value = globalTestDuration !== null ? globalTestDuration : '';
+                    }
+                }
+                
+                if (parsed.globalBufferDuration !== undefined) {
+                    globalBufferDuration = parsed.globalBufferDuration;
+                    const globalBufferInput = document.getElementById('globalBufferDuration');
+                    if (globalBufferInput) {
+                        globalBufferInput.value = globalBufferDuration !== null ? globalBufferDuration : '';
+                    }
                 }
                 
                 renderAnalysts();
@@ -2295,7 +2389,8 @@
                 }
 
                 // 3. ASSIGN TESTER - find earliest available tester
-                if (service.testDuration > 0) {
+                const testDuration = getTestDuration(service);
+                if (testDuration > 0) {
                     let earliestTester = null;
                     let earliestDate = null;
 
@@ -2320,10 +2415,11 @@
                         while (isWeekend(testStart)) {
                             testStart.setDate(testStart.getDate() + 1);
                         }
-                        let testEnd = addBusinessDays(testStart, service.testDuration - 1);
+                        let testEnd = addBusinessDays(testStart, testDuration - 1);
                         // Add buffer
-                        if (service.bufferDuration > 0) {
-                            testEnd = addBusinessDays(testEnd, service.bufferDuration);
+                        const bufferDuration = getBufferDuration(service);
+                        if (bufferDuration > 0) {
+                            testEnd = addBusinessDays(testEnd, bufferDuration);
                         }
                         testEnd.setDate(testEnd.getDate() + 1);
                         while (isWeekend(testEnd)) {
