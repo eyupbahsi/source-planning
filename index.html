@@ -770,8 +770,8 @@
             { id: 'user', category: 'Core', name: 'User', analyst: '', developer: '', tester: '', duration: 35, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
             { id: 'notification', category: 'Core', name: 'Notification', analyst: '', developer: '', tester: '', duration: 5, analysisDuration: 5, testDuration: 3, bufferDuration: 2, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
             { id: 'loyalty', category: 'Core', name: 'Loyalty', analyst: '', developer: '', tester: '', duration: 35, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
-            { id: 'payment', category: 'Core', name: 'Payment', analyst: '', developer: '', tester: '', duration: 60, analysisDuration: 15, testDuration: 15, bufferDuration: 10, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
-            { id: 'paymentgw', category: 'Core', name: 'PaymentGW', analyst: '', developer: '', tester: '', duration: 30, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'payment', category: 'Core', name: 'Payment', analyst: '', developer: '', tester: '', duration: 40, analysisDuration: 15, testDuration: 15, bufferDuration: 10, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
+            { id: 'paymentgw', category: 'Core', name: 'PaymentGW', analyst: '', developer: '', tester: '', duration: 20, analysisDuration: 10, testDuration: 10, bufferDuration: 5, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
             { id: 'campaign', category: 'Core', name: 'Campaign', analyst: '', developer: '', tester: '', duration: 50, analysisDuration: 15, testDuration: 15, bufferDuration: 10, dependencies: [], isCompleted: false, phase: 1, status: 'pending' },
             
             // FAZ 2: Markup, Flight, Reservation
@@ -1097,6 +1097,17 @@
                         currentDate.setDate(currentDate.getDate() + 1);
                         while (isWeekend(currentDate)) {
                             currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    }
+
+                    // Special case: Payment service analysis starts on 10.10.2025
+                    if (service.id === 'payment') {
+                        const paymentStartDate = parseDate('10.10.2025');
+                        if (paymentStartDate && paymentStartDate > currentDate) {
+                            currentDate = new Date(paymentStartDate);
+                            while (isWeekend(currentDate)) {
+                                currentDate.setDate(currentDate.getDate() + 1);
+                            }
                         }
                     }
 
