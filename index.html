@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ANKA Development Gantt Chart</title>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -369,6 +370,14 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .action-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn {
@@ -397,6 +406,238 @@
 
         .btn-secondary:hover {
             background: #7f8c8d;
+        }
+
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e1ecf8;
+            color: #1f5fa2;
+            font-size: 0;
+            line-height: 16px;
+            text-align: center;
+            font-style: normal;
+            flex-shrink: 0;
+            cursor: pointer;
+            margin-left: 6px;
+            transition: transform 0.2s;
+        }
+
+        .info-icon::before {
+            content: 'i';
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 16px;
+            color: inherit;
+            font-family: inherit;
+        }
+
+        .info-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .sub-section {
+            margin-top: 30px;
+        }
+
+        .sub-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .info-note {
+            font-size: 12px;
+            color: #546e7a;
+            margin-top: 4px;
+        }
+
+        .panel {
+            background: #f9fbfd;
+            border: 1px solid #d6e2f1;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f3c5d;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .risk-item {
+            background: #fff;
+            border-left: 4px solid #e74c3c;
+            border-radius: 6px;
+            padding: 10px 12px;
+            box-shadow: 0 1px 2px rgba(15, 30, 45, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .risk-item.low {
+            border-left-color: #f39c12;
+        }
+
+        .risk-item p {
+            margin: 0;
+            font-size: 13px;
+            color: #34495e;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e1e9f2;
+            padding: 18px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .chart-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .critical {
+            border-left: 4px solid #e74c3c !important;
+            background: #fff7f6 !important;
+        }
+
+        .critical .date-cell {
+            color: #c0392b;
+        }
+
+        .low-slack {
+            border-left: 4px solid #f39c12 !important;
+            background: #fef5e6 !important;
+        }
+
+        .info-pill {
+            background: #edf5ff;
+            color: #1f5fa2;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 8px;
+        }
+
+        .info-pill.critical {
+            background: #ffe3e3;
+            color: #c0392b;
+        }
+
+        .info-pill.slack {
+            background: #fff4e5;
+            color: #d35400;
+        }
+
+        .service-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .service-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .info-tooltip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: pre-line;
+            max-width: 240px;
+            z-index: 100;
+        }
+
+        .scenario-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .scenario-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        .scenario-meta span {
+            font-weight: 600;
+            color: #1f3c5d;
+        }
+
+        .progress-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-input input[type="number"] {
+            width: 60px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
         }
 
         .category-badge {
@@ -630,16 +871,86 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn btn-primary" onclick="autoOptimizeResources()" style="background: #e74c3c;">🚀 Kaynakları Otomatik Optimize Et</button>
-            <button class="btn btn-primary" onclick="saveToLocalStorage()">💾 Tarayıcıya Kaydet</button>
-            <button class="btn btn-secondary" onclick="loadFromLocalStorage()">📂 Tarayıcıdan Yükle</button>
-            <button class="btn btn-primary" onclick="exportToFile()">📥 JSON İndir</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📤 JSON Yükle</button>
-            <button class="btn btn-primary" onclick="exportToExcel()">📊 Excel'e Aktar</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('excelInput').click()">📈 Excel'den Yükle</button>
-            <button class="btn btn-secondary" onclick="resetData()">🔄 Varsayılana Sıfırla</button>
+            <div class="action-group">
+                <button class="btn btn-primary" onclick="autoOptimizeResources()" style="background: #e74c3c;">🚀 Kaynakları Otomatik Optimize Et</button>
+                <span class="info-icon info-tooltip" data-tip="Mevcut tüm atamaları kaldırır ve servisleri en erken proje bitişi için yeniden planlar.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-primary" onclick="saveToLocalStorage()">💾 Tarayıcıya Kaydet</button>
+                <span class="info-icon info-tooltip" data-tip="Tüm kaynak ve servis verilerini tarayıcı hafızasına kaydeder.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-secondary" onclick="loadFromLocalStorage()">📂 Tarayıcıdan Yükle</button>
+                <span class="info-icon info-tooltip" data-tip="Tarayıcıya kaydettiğiniz son planı geri yükler.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-primary" onclick="exportToFile()">📥 JSON İndir</button>
+                <span class="info-icon info-tooltip" data-tip="Projeyi JSON dosyası olarak indirerek paylaşın veya yedekleyin.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📤 JSON Yükle</button>
+                <span class="info-icon info-tooltip" data-tip="Daha önce dışa aktardığınız JSON dosyasını geri yükler.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-primary" onclick="exportToExcel()">📊 Excel'e Aktar</button>
+                <span class="info-icon info-tooltip" data-tip="Servis planını CSV/Excel formatında indirerek farklı araçlarda analiz edin.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-secondary" onclick="document.getElementById('excelInput').click()">📈 Excel'den Yükle</button>
+                <span class="info-icon info-tooltip" data-tip="CSV/Excel dosyasından servis ve atamaları günceller.">i</span>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-secondary" onclick="resetData()">🔄 Varsayılana Sıfırla</button>
+                <span class="info-icon info-tooltip" data-tip="Tüm verileri temizler ve başlangıç planına geri döner.">i</span>
+            </div>
             <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importFromFile(event)">
             <input type="file" id="excelInput" accept=".csv" style="display: none;" onchange="importFromExcel(event)">
+        </div>
+
+        <div class="sub-section">
+            <h3>🎯 Senaryo Yönetimi <span class="info-icon info-tooltip" data-tip="Farklı kaynak dağılımlarını kaydedip tek tıkla yükleyin, senaryoları karşılaştırın.">i</span></h3>
+            <div class="panel">
+                <div class="scenario-meta">
+                    <div>Aktif Plan: <span id="activeScenarioName">Canlı Plan</span></div>
+                    <div>Son Kaydedilen Senaryo: <span id="lastScenarioName">-</span></div>
+                    <div>Proje Bitiş Tahmini: <span id="scenarioEndEstimate">-</span></div>
+                    <div>Toplam Kalan İş Günü: <span id="scenarioRemainingDays">-</span></div>
+                </div>
+                <div class="scenario-actions">
+                    <div class="action-group">
+                        <button class="btn btn-primary" onclick="openScenarioSaveModal()">💡 Senaryo Kaydet</button>
+                        <span class="info-icon info-tooltip" data-tip="Mevcut planı isim vererek senaryo olarak saklar.">i</span>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-secondary" onclick="openScenarioLoadModal()">📁 Senaryo Yükle</button>
+                        <span class="info-icon info-tooltip" data-tip="Kayıtlı senaryolardan birini seçip mevcut plana uygular.">i</span>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-secondary" onclick="openScenarioCompareModal()">📊 Senaryoları Karşılaştır</button>
+                        <span class="info-icon info-tooltip" data-tip="İki senaryonun bitiş tarihini ve iş yükünü grafiklerle karşılaştırır.">i</span>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-secondary" onclick="deleteScenarioPrompt()">🗑️ Senaryo Sil</button>
+                        <span class="info-icon info-tooltip" data-tip="Seçtiğiniz kayıtlı senaryoyu kalıcı olarak siler.">i</span>
+                    </div>
+                </div>
+                <div class="info-note">Senaryolar tarayıcıda saklanır; farklı ekip düzenlerini deneyin ve sonuçları karşılaştırın.</div>
+            </div>
+        </div>
+
+        <div class="sub-section">
+            <h3>⚠️ Kritik Yol & Risk <span class="info-icon info-tooltip" data-tip="Kritik yol üzerindeki servisleri ve gecikme riski taşıyan işleri takip edin.">i</span></h3>
+            <div class="panel">
+                <div class="scenario-meta">
+                    <div>Kritik Yol Süresi: <span id="criticalDurationDays">-</span></div>
+                    <div>Kritik Servis: <span id="criticalServiceCount">-</span></div>
+                    <div>Düşük Esneklik Sayısı: <span id="lowSlackServiceCount">-</span></div>
+                    <div>Güncelleme: <span id="riskUpdatedAt">-</span></div>
+                </div>
+                <div class="panel-title">Risk Uyarıları <span class="info-icon info-tooltip" data-tip="Esneklik değeri düşük servisler veya kritik bağımlılıkları bulunan işler burada listelenir.">i</span></div>
+                <div class="risk-list" id="riskList"></div>
+                <div class="info-note" id="riskEmptyState">Şu anda kritik risk bulunmuyor. Esneklik değerlerini izlemeye devam edin.</div>
+            </div>
         </div>
 
         <!-- Services Table -->
@@ -671,6 +982,11 @@
                                    title="Tüm servisler için buffer süresi (boş bırakırsanız default değerler kullanılır)"
                                    onchange="updateGlobalBufferDuration(this.value)"
                                    onblur="if(this.value === '') updateGlobalBufferDuration('')">
+                        </th>
+                        <th rowspan="2">Tamamlanma</th>
+                        <th rowspan="2">
+                            Gerçekleşen
+                            <span class="info-icon info-tooltip" data-tip="Servisin fiili başlangıç ve bitiş tarihleri ile gerçekleşen iş günü toplamını gösterir.">i</span>
                         </th>
                         <th rowspan="2">Bağımlılıklar</th>
                         <th rowspan="2">Durum</th>
@@ -724,6 +1040,142 @@
                 <!-- Gantt chart will be inserted here -->
             </div>
         </div>
+
+        <div class="sub-section">
+            <h3>📈 Kapasite Analizi <span class="info-icon info-tooltip" data-tip="Kaynakların haftalık iş yüklerini kapasite limitleriyle karşılaştırın.">i</span></h3>
+            <div class="panel">
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
+                    <div class="scenario-meta" style="flex: 1;">
+                        <div>Zirve Aşım: <span id="capacityPeakWeek">-</span></div>
+                        <div>Toplam Aşım: <span id="capacityOverloadCount">-</span></div>
+                        <div>Kapasite Limitleri: <span id="capacitySettingsInfo">-</span></div>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-secondary" onclick="openCapacitySettings()">⚙️ Kapasite Ayarla</button>
+                        <span class="info-icon info-tooltip" data-tip="Haftalık iş günü limitlerini ve slack eşiklerini güncelleyin.">i</span>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-primary" onclick="openRebalanceModal()">🤝 Dengeli Dağıt</button>
+                        <span class="info-icon info-tooltip" data-tip="Aşırı yüklenen kaynaklar için otomatik kaynak değişimi önerileri oluşturur.">i</span>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <h4>Geliştirici Yükü <span class="info-icon info-tooltip" data-tip="Her geliştirici için planlanan iş günü yükü. Kapasite çizgisi aşımı gösterir.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="developerCapacityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Analist Yükü <span class="info-icon info-tooltip" data-tip="Analistlere dağıtılan analiz iş günü toplamı.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="analystCapacityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Test Uzmanı Yükü <span class="info-icon info-tooltip" data-tip="Test ve buffer günlerinin test ekibine dağılımı.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="testerCapacityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-note">Not: Kapasite hesaplamaları iş günleri üzerinden yapılır; hafta sonları otomatik olarak çıkarılır.</div>
+            </div>
+        </div>
+
+        <div class="sub-section">
+            <h3>🚀 İlerleme Takibi <span class="info-icon info-tooltip" data-tip="Gerçekleşen ilerlemeyi planlanan hedeflerle kıyaslayın.">i</span></h3>
+            <div class="panel">
+                <div class="scenario-meta">
+                    <div>Planlanan Gün: <span id="progressPlannedDays">-</span></div>
+                    <div>Tamamlanan Gün: <span id="progressCompletedDays">-</span></div>
+                    <div>Ortalama Tamamlama: <span id="progressAverage">-</span></div>
+                    <div>Aktif Servis: <span id="progressActiveServices">-</span></div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <h4>Burndown Grafiği <span class="info-icon info-tooltip" data-tip="Toplam kalan iş gününü zaman ekseninde takip edin.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="burndownChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Burnup Grafiği <span class="info-icon info-tooltip" data-tip="Tamamlanan iş gününü proje kapsamıyla kıyaslayın.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="burnupChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Beklenen vs Gerçekleşen <span class="info-icon info-tooltip" data-tip="Faz bazında planlanan ve gerçekleşen toplam süre.">i</span></h4>
+                        <div style="height: 240px;">
+                            <canvas id="expectedActualChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-group" style="margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="openProgressReport()">📄 İlerleme Raporu</button>
+                    <span class="info-icon info-tooltip" data-tip="Son durum özetini gör ve dışa aktarmaya hazırla.">i</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capacity Settings Modal -->
+    <div id="capacitySettingsModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Kapasite & Esneklik Ayarları</h3>
+                <button class="modal-close" onclick="closeCapacitySettings()">×</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Analist (gün/hafta)</label>
+                        <input type="number" min="1" id="capacityAnalystInput" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Geliştirici (gün/hafta)</label>
+                        <input type="number" min="1" id="capacityDeveloperInput" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Test Uzmanı (gün/hafta)</label>
+                        <input type="number" min="1" id="capacityTesterInput" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Düşük Esneklik Eşiği (gün)</label>
+                        <input type="number" min="0" id="lowSlackThresholdInput" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Gecikme Uyarısı Tamponu (gün)</label>
+                        <input type="number" min="0" id="overdueThresholdInput" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                    </div>
+                </div>
+                <div class="info-note">Bu değerler kapasite grafikleri ve risk hesaplarında kullanılır. Esneklik eşiği azalırsa daha fazla servis uyarı listesine girer.</div>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeCapacitySettings()">Vazgeç</button>
+                <button class="btn btn-primary" onclick="saveCapacitySettings()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rebalance Suggestions Modal -->
+    <div id="rebalanceModal" class="modal">
+        <div class="modal-content" style="max-width: 640px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Dengeli Dağıt Önerileri</h3>
+                <button class="modal-close" onclick="closeRebalanceModal()">×</button>
+            </div>
+            <div id="rebalanceContent" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Suggestions will be rendered here -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeRebalanceModal()">Kapat</button>
+                <button class="btn btn-primary" onclick="applyRebalanceSuggestions()">Seçilenleri Uygula</button>
+            </div>
+        </div>
     </div>
 
     <!-- Dependency Modal -->
@@ -739,6 +1191,110 @@
             <div style="margin-top: 20px; text-align: right;">
                 <button class="btn btn-primary" onclick="saveDependencies()">Kaydet</button>
                 <button class="btn btn-secondary" onclick="closeDependencyModal()">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Save Modal -->
+    <div id="scenarioSaveModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Yeni Senaryo Kaydet</h3>
+                <button class="modal-close" onclick="closeScenarioSaveModal()">×</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <label style="font-weight: 600; color: #2c3e50;">Senaryo Adı</label>
+                <input type="text" id="scenarioNameInput" placeholder="Örn: Tam Kapasite Planı" style="padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                <label style="font-weight: 600; color: #2c3e50;">Notlar <span class="info-icon info-tooltip" data-tip="Senaryonun varsayımlarını veya deneme amacını yazın.">i</span></label>
+                <textarea id="scenarioNotesInput" rows="4" placeholder="Varsayımlar, kapasite değişiklikleri, önemli notlar..." style="padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2; resize: vertical;"></textarea>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #546e7a;">
+                    <div>Proje Bitiş Tahmini: <strong id="scenarioSaveEndDate">-</strong></div>
+                    <div>Kalan İş Günü: <strong id="scenarioSaveRemainingDays">-</strong></div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeScenarioSaveModal()">Vazgeç</button>
+                <button class="btn btn-primary" onclick="saveScenario()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Load Modal -->
+    <div id="scenarioLoadModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Senaryo Yükle</h3>
+                <button class="modal-close" onclick="closeScenarioLoadModal()">×</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <label style="font-weight: 600; color: #2c3e50;">Senaryo Seçin</label>
+                <select id="scenarioSelect" size="5" style="padding: 8px; border-radius: 4px; border: 1px solid #d0d7e2;">
+                </select>
+                <div class="panel" style="margin-top: 10px;">
+                    <div class="panel-title">Senaryo Özeti</div>
+                    <div style="font-size: 12px; color: #546e7a; display: grid; gap: 4px;">
+                        <div>Kaydedilme Tarihi: <strong id="scenarioLoadTimestamp">-</strong></div>
+                        <div>Bitiş Tahmini: <strong id="scenarioLoadEndDate">-</strong></div>
+                        <div>Kalan İş Günü: <strong id="scenarioLoadRemaining">-</strong></div>
+                        <div>Not: <strong id="scenarioLoadNotes">-</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-secondary" id="scenarioDeleteBtn" onclick="deleteSelectedScenario()">🗑️ Seçili Senaryoyu Sil</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="closeScenarioLoadModal()">Vazgeç</button>
+                    <button class="btn btn-primary" id="scenarioLoadApplyBtn" onclick="applySelectedScenario()">Yükle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Compare Modal -->
+    <div id="scenarioCompareModal" class="modal">
+        <div class="modal-content" style="max-width: 860px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Senaryo Karşılaştırma</h3>
+                <button class="modal-close" onclick="closeScenarioCompareModal()">×</button>
+            </div>
+            <div style="display: grid; gap: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px;">
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Senaryo 1</label>
+                        <select id="scenarioCompareA" style="padding: 6px; width: 100%; border-radius: 4px; border: 1px solid #d0d7e2;"></select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50;">Senaryo 2</label>
+                        <select id="scenarioCompareB" style="padding: 6px; width: 100%; border-radius: 4px; border: 1px solid #d0d7e2;"></select>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h4>Faz Bitiş Karşılaştırması <span class="info-icon info-tooltip" data-tip="Her iki senaryoda fazların planlanan bitiş tarihleri yan yana gösterilir.">i</span></h4>
+                    <canvas id="scenarioPhaseChart" height="260"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>Kalan İş Günü Karşılaştırması <span class="info-icon info-tooltip" data-tip="Senaryoların toplam kalan iş yükü ve proje bitiş tarihindeki farkı.">i</span></h4>
+                    <canvas id="scenarioSummaryChart" height="220"></canvas>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeScenarioCompareModal()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Report Modal -->
+    <div id="progressReportModal" class="modal">
+        <div class="modal-content" style="max-width: 680px; max-height: 70vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">İlerleme Raporu</h3>
+                <button class="modal-close" onclick="closeProgressReport()">×</button>
+            </div>
+            <div id="progressReportContent" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Report details will be inserted here -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeProgressReport()">Kapat</button>
             </div>
         </div>
     </div>
@@ -812,6 +1368,1724 @@
             { id: 'corporatetransaction', category: 'Product', name: 'CorporateTransaction', analyst: '', developer: '', tester: '', duration: 0, analysisDuration: 0, testDuration: 0, bufferDuration: 0, dependencies: [], isCompleted: true, phase: 0, status: 'completed' }
         ];
 
+        const DEFAULT_CAPACITY = {
+            analyst: 5,
+            developer: 5,
+            tester: 5
+        };
+
+        const DEFAULT_THRESHOLDS = {
+            lowSlack: 2,
+            overdueBuffer: 3
+        };
+
+        let appSettings = {
+            capacities: {},
+            thresholds: {}
+        };
+
+        let scenarios = [];
+        let activeScenarioId = null;
+
+        const charts = {
+            scenarioComparison: null,
+            phaseComparison: null,
+            capacity: {},
+            burndown: null,
+            burnup: null,
+            expectedActual: null
+        };
+
+        let criticalMetrics = null;
+        let resourceLoadSummary = null;
+        let pendingRebalanceSuggestions = [];
+
+        function deepClone(obj) {
+            try {
+                if (typeof structuredClone === 'function') {
+                    return structuredClone(obj);
+                }
+            } catch (e) {
+                console.warn('structuredClone not available, falling back to JSON clone');
+            }
+            return JSON.parse(JSON.stringify(obj));
+        }
+
+        function applyServiceDefaults(service) {
+            if (!service) return;
+            if (service.progressPercent === undefined) service.progressPercent = 0;
+            if (!service.progressLog) service.progressLog = [];
+            if (!service.actualStartDate) service.actualStartDate = null;
+            if (!service.actualEndDate) service.actualEndDate = null;
+            if (!service.actualDuration) service.actualDuration = 0;
+            if (service.slackDays === undefined) service.slackDays = null;
+            if (service.isCritical === undefined) service.isCritical = false;
+            if (service.expectedDuration === undefined) {
+                service.expectedDuration = (service.analysisDuration || 0) + (service.duration || 0) + (service.testDuration || 0) + (service.bufferDuration || 0);
+            }
+            if ((service.status === 'completed' || service.isCompleted) && service.progressPercent < 100) {
+                service.progressPercent = 100;
+            }
+        }
+
+        function normalizeServices() {
+            services.forEach(applyServiceDefaults);
+        }
+
+        function initializeSettings() {
+            if (!appSettings || typeof appSettings !== 'object') {
+                appSettings = {};
+            }
+            if (!appSettings.capacities || Object.keys(appSettings.capacities).length === 0) {
+                appSettings.capacities = deepClone(DEFAULT_CAPACITY);
+            } else {
+                appSettings.capacities = Object.assign(deepClone(DEFAULT_CAPACITY), appSettings.capacities);
+            }
+            if (!appSettings.thresholds || Object.keys(appSettings.thresholds).length === 0) {
+                appSettings.thresholds = deepClone(DEFAULT_THRESHOLDS);
+            } else {
+                appSettings.thresholds = Object.assign(deepClone(DEFAULT_THRESHOLDS), appSettings.thresholds);
+            }
+        }
+
+        function ensureArraysInitialized() {
+            if (!Array.isArray(scenarios)) {
+                scenarios = [];
+            }
+        }
+
+        normalizeServices();
+        initializeSettings();
+        ensureArraysInitialized();
+
+        let scenarioModalMode = 'load';
+
+        function formatNumber(value) {
+            if (value === null || value === undefined || isNaN(value)) {
+                return '0';
+            }
+            const number = Number(value);
+            return new Intl.NumberFormat('tr-TR').format(Math.round(number));
+        }
+
+        function formatDateTimeWithHours(date) {
+            if (!date) return '-';
+            const d = new Date(date);
+            if (isNaN(d.getTime())) return '-';
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${day}.${month}.${year} ${hours}:${minutes}`;
+        }
+
+        function getIsoWeekKey(dateInput) {
+            let target = dateInput instanceof Date ? new Date(dateInput) : parseDate(dateInput);
+            if (!target || isNaN(target.getTime())) return null;
+            const date = new Date(Date.UTC(target.getFullYear(), target.getMonth(), target.getDate()));
+            const dayNum = date.getUTCDay() || 7;
+            date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+            return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+        }
+
+        function formatWeekLabel(weekKey) {
+            if (!weekKey) return '-';
+            const parts = weekKey.split('-W');
+            if (parts.length !== 2) return weekKey;
+            return `${parts[0]} W${parts[1]}`;
+        }
+
+        function compareIsoWeeks(a, b) {
+            if (!a && !b) return 0;
+            if (!a) return -1;
+            if (!b) return 1;
+            const [yearA, weekA] = a.split('-W').map(Number);
+            const [yearB, weekB] = b.split('-W').map(Number);
+            if (yearA !== yearB) {
+                return yearA - yearB;
+            }
+            return weekA - weekB;
+        }
+
+        function getServiceTotalPlannedDays(service, overrides = null) {
+            if (!service) return 0;
+            const analysis = parseInt(service.analysisDuration) || 0;
+            const development = parseInt(service.duration) || 0;
+            let test = parseInt(service.testDuration) || 0;
+            let buffer = parseInt(service.bufferDuration) || 0;
+
+            if (overrides && overrides.globalTestDuration !== undefined && overrides.globalTestDuration !== null && !service.isCompleted) {
+                test = parseInt(overrides.globalTestDuration) || 0;
+            }
+            if (overrides && overrides.globalBufferDuration !== undefined && overrides.globalBufferDuration !== null && !service.isCompleted) {
+                buffer = parseInt(overrides.globalBufferDuration) || 0;
+            }
+
+            return analysis + development + test + buffer;
+        }
+
+        function calculateScenarioMetrics(serviceList, overrides = null) {
+            const metrics = {
+                projectStart: null,
+                projectEnd: null,
+                projectStartFormatted: '-',
+                projectEndFormatted: '-',
+                remainingDays: 0,
+                remainingServices: 0,
+                completedServices: 0,
+                phaseDurations: {},
+                phaseEndDates: {}
+            };
+
+            if (!serviceList) {
+                return metrics;
+            }
+
+            serviceList.forEach(service => {
+                const isCompleted = service.status === 'completed' || service.isCompleted;
+                if (isCompleted) {
+                    metrics.completedServices += 1;
+                } else {
+                    metrics.remainingServices += 1;
+                    metrics.remainingDays += getServiceTotalPlannedDays(service, overrides);
+                }
+
+                const potentialStart = service.analysisStartDate || service.devStartDate || service.testStartDate || service.startDate;
+                if (potentialStart) {
+                    const startDate = parseDate(potentialStart);
+                    if (startDate && (!metrics.projectStart || startDate < metrics.projectStart)) {
+                        metrics.projectStart = startDate;
+                    }
+                }
+
+                const potentialEnd = service.bufferEndDate || service.testEndDate || service.devEndDate || service.analysisEndDate || service.endDate;
+                if (potentialEnd) {
+                    const endDate = parseDate(potentialEnd);
+                    if (endDate && (!metrics.projectEnd || endDate > metrics.projectEnd)) {
+                        metrics.projectEnd = endDate;
+                    }
+                    const phaseKey = service.phase || 0;
+                    if (!metrics.phaseEndDates[phaseKey] || (endDate && endDate > metrics.phaseEndDates[phaseKey])) {
+                        metrics.phaseEndDates[phaseKey] = endDate;
+                    }
+                }
+
+                const durationPhase = service.phase || 0;
+                if (!metrics.phaseDurations[durationPhase]) {
+                    metrics.phaseDurations[durationPhase] = 0;
+                }
+                metrics.phaseDurations[durationPhase] += getServiceTotalPlannedDays(service, overrides);
+            });
+
+            if (metrics.projectStart) {
+                metrics.projectStartFormatted = formatDate(metrics.projectStart);
+            }
+            if (metrics.projectEnd) {
+                metrics.projectEndFormatted = formatDate(metrics.projectEnd);
+            }
+
+            return metrics;
+        }
+
+        function updateScenarioSummaryPanel() {
+            const metrics = calculateScenarioMetrics(services, {
+                globalTestDuration,
+                globalBufferDuration
+            });
+
+            const activeScenarioNameEl = document.getElementById('activeScenarioName');
+            const lastScenarioNameEl = document.getElementById('lastScenarioName');
+            const scenarioEndEl = document.getElementById('scenarioEndEstimate');
+            const scenarioRemainingEl = document.getElementById('scenarioRemainingDays');
+
+            if (scenarioEndEl) {
+                scenarioEndEl.textContent = metrics.projectEndFormatted || '-';
+            }
+            if (scenarioRemainingEl) {
+                scenarioRemainingEl.textContent = formatNumber(metrics.remainingDays);
+            }
+
+            if (activeScenarioNameEl) {
+                let activeName = 'Canlı Plan';
+                if (activeScenarioId) {
+                    const activeScenario = scenarios.find(s => s.id === activeScenarioId);
+                    if (activeScenario) {
+                        activeName = `${activeScenario.title}`;
+                    }
+                }
+                activeScenarioNameEl.textContent = activeName;
+            }
+
+            if (lastScenarioNameEl) {
+                const lastScenario = scenarios.length > 0 ? scenarios[scenarios.length - 1] : null;
+                lastScenarioNameEl.textContent = lastScenario ? lastScenario.title : '-';
+            }
+        }
+
+        function createScenarioSnapshot() {
+            return {
+                analysts: deepClone(analysts),
+                developers: deepClone(developers),
+                testers: deepClone(testers),
+                services: deepClone(services),
+                globalTestDuration,
+                globalBufferDuration,
+                appSettings: deepClone(appSettings),
+                savedAt: new Date().toISOString()
+            };
+        }
+
+        function openScenarioSaveModal() {
+            const modal = document.getElementById('scenarioSaveModal');
+            if (!modal) return;
+
+            const titleInput = document.getElementById('scenarioNameInput');
+            const notesInput = document.getElementById('scenarioNotesInput');
+            if (titleInput) {
+                const now = new Date();
+                titleInput.value = `Senaryo ${formatDate(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }
+            if (notesInput) {
+                notesInput.value = '';
+            }
+
+            const metrics = calculateScenarioMetrics(services, {
+                globalTestDuration,
+                globalBufferDuration
+            });
+
+            const endEl = document.getElementById('scenarioSaveEndDate');
+            const remainEl = document.getElementById('scenarioSaveRemainingDays');
+            if (endEl) endEl.textContent = metrics.projectEndFormatted || '-';
+            if (remainEl) remainEl.textContent = formatNumber(metrics.remainingDays);
+
+            modal.style.display = 'block';
+        }
+
+        function closeScenarioSaveModal() {
+            const modal = document.getElementById('scenarioSaveModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function saveScenario() {
+            const nameInput = document.getElementById('scenarioNameInput');
+            if (!nameInput) return;
+            const scenarioName = (nameInput.value || '').trim();
+            if (!scenarioName) {
+                alert('⚠️ Lütfen senaryo için bir ad girin.');
+                return;
+            }
+
+            const notesInput = document.getElementById('scenarioNotesInput');
+            const notes = notesInput ? (notesInput.value || '').trim() : '';
+            const snapshot = createScenarioSnapshot();
+            const metrics = calculateScenarioMetrics(snapshot.services, snapshot);
+
+            const scenario = {
+                id: `sc_${Date.now()}`,
+                title: scenarioName,
+                notes,
+                createdAt: new Date().toISOString(),
+                snapshot,
+                metrics
+            };
+
+            scenarios.push(scenario);
+            activeScenarioId = scenario.id;
+
+            closeScenarioSaveModal();
+            updateScenarioSummaryPanel();
+            persistScenarioData();
+
+            alert(`✅ Senaryo kaydedildi:\n\n${scenario.title}`);
+        }
+
+        function openScenarioLoadModal(mode = 'load') {
+            scenarioModalMode = mode;
+            const modal = document.getElementById('scenarioLoadModal');
+            if (!modal) {
+                return;
+            }
+
+            if (!populateScenarioSelect()) {
+                alert('📂 Henüz kayıtlı senaryo yok.');
+                return;
+            }
+
+            const deleteBtn = document.getElementById('scenarioDeleteBtn');
+            const applyBtn = document.getElementById('scenarioLoadApplyBtn');
+
+            if (deleteBtn) {
+                deleteBtn.style.display = scenarios.length > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (applyBtn) {
+                if (mode === 'delete') {
+                    applyBtn.style.display = 'none';
+                } else {
+                    applyBtn.style.display = scenarios.length > 0 ? 'inline-flex' : 'none';
+                }
+            }
+
+            modal.style.display = 'block';
+            onScenarioSelectChange();
+        }
+
+        function closeScenarioLoadModal() {
+            const modal = document.getElementById('scenarioLoadModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            scenarioModalMode = 'load';
+        }
+
+        function populateScenarioSelect() {
+            const select = document.getElementById('scenarioSelect');
+            if (!select) return false;
+
+            select.innerHTML = '';
+
+            if (!scenarios || scenarios.length === 0) {
+                return false;
+            }
+
+            scenarios
+                .slice()
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .forEach(scenario => {
+                    const option = document.createElement('option');
+                    option.value = scenario.id;
+                    option.textContent = `${scenario.title}`;
+                    select.appendChild(option);
+                });
+
+            select.selectedIndex = 0;
+            select.onchange = onScenarioSelectChange;
+            return true;
+        }
+
+        function onScenarioSelectChange() {
+            const select = document.getElementById('scenarioSelect');
+            if (!select) return;
+            const selectedId = select.value;
+            const scenario = scenarios.find(s => s.id === selectedId);
+            const timestampEl = document.getElementById('scenarioLoadTimestamp');
+            const endEl = document.getElementById('scenarioLoadEndDate');
+            const remainingEl = document.getElementById('scenarioLoadRemaining');
+            const notesEl = document.getElementById('scenarioLoadNotes');
+
+            if (!scenario) {
+                if (timestampEl) timestampEl.textContent = '-';
+                if (endEl) endEl.textContent = '-';
+                if (remainingEl) remainingEl.textContent = '-';
+                if (notesEl) notesEl.textContent = '-';
+                return;
+            }
+
+            const metrics = calculateScenarioMetrics(scenario.snapshot.services, scenario.snapshot);
+
+            if (timestampEl) timestampEl.textContent = formatDateTimeWithHours(scenario.createdAt);
+            if (endEl) endEl.textContent = metrics.projectEndFormatted || '-';
+            if (remainingEl) remainingEl.textContent = formatNumber(metrics.remainingDays);
+            if (notesEl) notesEl.textContent = scenario.notes || '-';
+        }
+
+        function applySelectedScenario() {
+            if (scenarioModalMode === 'delete') {
+                alert('⚠️ Şu anda silme modundasınız. Lütfen "Vazgeç" ile çıkıp tekrar deneyin.');
+                return;
+            }
+
+            const select = document.getElementById('scenarioSelect');
+            if (!select || !select.value) {
+                alert('⚠️ Lütfen yüklemek için bir senaryo seçin.');
+                return;
+            }
+            loadScenarioById(select.value);
+            closeScenarioLoadModal();
+        }
+
+        function loadScenarioById(scenarioId) {
+            const scenario = scenarios.find(s => s.id === scenarioId);
+            if (!scenario) {
+                alert('⚠️ Seçilen senaryo bulunamadı.');
+                return;
+            }
+
+            analysts = deepClone(scenario.snapshot.analysts || analysts);
+            developers = deepClone(scenario.snapshot.developers || developers);
+            testers = deepClone(scenario.snapshot.testers || testers);
+            services = deepClone(scenario.snapshot.services || services);
+            normalizeServices();
+
+            globalTestDuration = scenario.snapshot.globalTestDuration ?? null;
+            globalBufferDuration = scenario.snapshot.globalBufferDuration ?? null;
+
+            if (scenario.snapshot.appSettings) {
+                appSettings = deepClone(scenario.snapshot.appSettings);
+            } else {
+                initializeSettings();
+            }
+
+            const globalTestInput = document.getElementById('globalTestDuration');
+            if (globalTestInput) {
+                globalTestInput.value = globalTestDuration !== null ? globalTestDuration : '';
+            }
+            const globalBufferInput = document.getElementById('globalBufferDuration');
+            if (globalBufferInput) {
+                globalBufferInput.value = globalBufferDuration !== null ? globalBufferDuration : '';
+            }
+
+            renderAnalysts();
+            renderDevelopers();
+            renderTesters();
+            recalculateAll();
+            activeScenarioId = scenario.id;
+            updateScenarioSummaryPanel();
+            persistScenarioData();
+
+            alert(`✅ "${scenario.title}" senaryosu yüklendi.`);
+        }
+
+        function deleteSelectedScenario() {
+            const select = document.getElementById('scenarioSelect');
+            if (!select || !select.value) {
+                alert('⚠️ Silmek için bir senaryo seçin.');
+                return;
+            }
+            const scenario = scenarios.find(s => s.id === select.value);
+            if (!scenario) {
+                alert('⚠️ Senaryo bulunamadı.');
+                return;
+            }
+
+            if (!confirm(`🗑️ "${scenario.title}" senaryosunu silmek istediğinize emin misiniz?`)) {
+                return;
+            }
+
+            scenarios = scenarios.filter(s => s.id !== scenario.id);
+            if (activeScenarioId === scenario.id) {
+                activeScenarioId = null;
+            }
+
+            populateScenarioSelect();
+            onScenarioSelectChange();
+            updateScenarioSummaryPanel();
+            persistScenarioData();
+            alert(`✅ "${scenario.title}" senaryosu silindi.`);
+        }
+
+        function deleteScenarioPrompt() {
+            if (!scenarios || scenarios.length === 0) {
+                alert('🗑️ Silinecek senaryo bulunamadı.');
+                return;
+            }
+            openScenarioLoadModal('delete');
+        }
+
+        function openScenarioCompareModal() {
+            if (!scenarios || scenarios.length === 0) {
+                alert('📊 Karşılaştırma için en az bir senaryo kaydedin.');
+                return;
+            }
+
+            populateScenarioCompareSelectors();
+            const modal = document.getElementById('scenarioCompareModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+            renderScenarioCharts();
+        }
+
+        function closeScenarioCompareModal() {
+            const modal = document.getElementById('scenarioCompareModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            if (charts.phaseComparison) {
+                charts.phaseComparison.destroy();
+                charts.phaseComparison = null;
+            }
+            if (charts.scenarioComparison) {
+                charts.scenarioComparison.destroy();
+                charts.scenarioComparison = null;
+            }
+        }
+
+        function getScenarioDatasetById(id) {
+            if (id === '__current' || !id) {
+                return {
+                    id: '__current',
+                    title: activeScenarioId ? `${document.getElementById('activeScenarioName')?.textContent || 'Aktif Plan'}` : 'Aktif Plan',
+                    metrics: calculateScenarioMetrics(services, {
+                        globalTestDuration,
+                        globalBufferDuration
+                    })
+                };
+            }
+            const scenario = scenarios.find(s => s.id === id);
+            if (!scenario) {
+                return null;
+            }
+            const metrics = calculateScenarioMetrics(scenario.snapshot.services, scenario.snapshot);
+            return {
+                id: scenario.id,
+                title: scenario.title,
+                metrics
+            };
+        }
+
+        function populateScenarioCompareSelectors() {
+            const selectA = document.getElementById('scenarioCompareA');
+            const selectB = document.getElementById('scenarioCompareB');
+            if (!selectA || !selectB) return;
+
+            const optionCurrent = document.createElement('option');
+            optionCurrent.value = '__current';
+            optionCurrent.textContent = 'Aktif Plan';
+
+            selectA.innerHTML = '';
+            selectB.innerHTML = '';
+            selectA.appendChild(optionCurrent.cloneNode(true));
+            selectB.appendChild(optionCurrent.cloneNode(true));
+
+            scenarios.forEach(scenario => {
+                const optionA = document.createElement('option');
+                optionA.value = scenario.id;
+                optionA.textContent = scenario.title;
+                selectA.appendChild(optionA);
+
+                const optionB = document.createElement('option');
+                optionB.value = scenario.id;
+                optionB.textContent = scenario.title;
+                selectB.appendChild(optionB.cloneNode(true));
+            });
+
+            selectA.selectedIndex = 0;
+            selectB.selectedIndex = Math.min(1, selectB.options.length - 1);
+
+            selectA.onchange = renderScenarioCharts;
+            selectB.onchange = renderScenarioCharts;
+        }
+
+        function renderScenarioCharts() {
+            const selectA = document.getElementById('scenarioCompareA');
+            const selectB = document.getElementById('scenarioCompareB');
+            if (!selectA || !selectB) return;
+
+            const datasetA = getScenarioDatasetById(selectA.value) || getScenarioDatasetById('__current');
+            const datasetB = getScenarioDatasetById(selectB.value) || (scenarios[0] ? getScenarioDatasetById(scenarios[0].id) : null);
+
+            if (!datasetA || !datasetB) {
+                return;
+            }
+
+            const allPhaseKeys = Array.from(new Set([
+                ...Object.keys(datasetA.metrics.phaseDurations || {}),
+                ...Object.keys(datasetB.metrics.phaseDurations || {})
+            ])).sort((a, b) => Number(a) - Number(b));
+
+            const labels = allPhaseKeys.map(phase => `Faz ${phase}`);
+            const dataA = allPhaseKeys.map(phase => datasetA.metrics.phaseDurations?.[phase] || 0);
+            const dataB = allPhaseKeys.map(phase => datasetB.metrics.phaseDurations?.[phase] || 0);
+
+            const phaseCtx = document.getElementById('scenarioPhaseChart');
+            if (phaseCtx) {
+                if (charts.phaseComparison) {
+                    charts.phaseComparison.destroy();
+                }
+                charts.phaseComparison = new Chart(phaseCtx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: datasetA.title,
+                                data: dataA,
+                                backgroundColor: 'rgba(52, 152, 219, 0.6)'
+                            },
+                            {
+                                label: datasetB.title,
+                                data: dataB,
+                                backgroundColor: 'rgba(243, 156, 18, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Toplam Planlanan İş Günü'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const summaryCtx = document.getElementById('scenarioSummaryChart');
+            if (summaryCtx) {
+                if (charts.scenarioComparison) {
+                    charts.scenarioComparison.destroy();
+                }
+
+                const now = new Date();
+                const daysToFinishA = datasetA.metrics.projectEnd ? Math.max(0, Math.round((datasetA.metrics.projectEnd - now) / (1000 * 60 * 60 * 24))) : 0;
+                const daysToFinishB = datasetB.metrics.projectEnd ? Math.max(0, Math.round((datasetB.metrics.projectEnd - now) / (1000 * 60 * 60 * 24))) : 0;
+
+                charts.scenarioComparison = new Chart(summaryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [datasetA.title, datasetB.title],
+                        datasets: [
+                            {
+                                label: 'Kalan İş Günü',
+                                data: [datasetA.metrics.remainingDays, datasetB.metrics.remainingDays],
+                                backgroundColor: 'rgba(67, 233, 123, 0.6)'
+                            },
+                            {
+                                label: 'Bitişe Kalan Takvim Günü',
+                                data: [daysToFinishA, daysToFinishB],
+                                backgroundColor: 'rgba(250, 112, 154, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Gün'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function persistScenarioData() {
+            try {
+                const scenarioPayload = {
+                    scenarios,
+                    activeScenarioId,
+                    appSettings
+                };
+                localStorage.setItem('ganttScenarios', JSON.stringify(scenarioPayload));
+            } catch (e) {
+                console.error('Senaryolar kaydedilirken hata oluştu', e);
+            }
+        }
+
+        function loadScenarioDataFromStorage() {
+            try {
+                const stored = localStorage.getItem('ganttScenarios');
+                if (!stored) return;
+                const parsed = JSON.parse(stored);
+                if (parsed.scenarios) {
+                    scenarios = parsed.scenarios;
+                    scenarios.forEach(scenario => {
+                        if (scenario && scenario.snapshot && Array.isArray(scenario.snapshot.services)) {
+                            scenario.snapshot.services.forEach(applyServiceDefaults);
+                        }
+                    });
+                }
+                if (parsed.activeScenarioId) {
+                    activeScenarioId = parsed.activeScenarioId;
+                }
+                if (parsed.appSettings) {
+                    appSettings = deepClone(parsed.appSettings);
+                }
+                if (!appSettings || !appSettings.capacities || !appSettings.thresholds) {
+                    initializeSettings();
+                }
+            } catch (e) {
+                console.error('Senaryo verileri yüklenemedi', e);
+            }
+        }
+
+        function calculateCriticalPath() {
+            const activeServices = services.filter(service => service.status !== 'completed' && !service.isCompleted);
+
+            if (activeServices.length === 0) {
+                services.forEach(service => {
+                    service.isCritical = false;
+                    service.slackDays = null;
+                });
+                criticalMetrics = {
+                    projectDuration: 0,
+                    earliestStart: {},
+                    earliestFinish: {},
+                    latestStart: {},
+                    latestFinish: {},
+                    slack: {},
+                    criticalServices: [],
+                    lowSlackServices: [],
+                    updatedAt: new Date().toISOString()
+                };
+                return criticalMetrics;
+            }
+
+            const sorted = topologicalSort(activeServices);
+            const durations = {};
+            const earliestStart = {};
+            const earliestFinish = {};
+            const successorMap = {};
+
+            activeServices.forEach(service => {
+                successorMap[service.id] = [];
+            });
+
+            activeServices.forEach(service => {
+                (service.dependencies || []).forEach(depId => {
+                    if (successorMap[depId]) {
+                        successorMap[depId].push(service.id);
+                    }
+                });
+            });
+
+            sorted.forEach(service => {
+                const duration = getServiceTotalPlannedDays(service, {
+                    globalTestDuration,
+                    globalBufferDuration
+                });
+                durations[service.id] = duration;
+
+                const deps = (service.dependencies || []).filter(depId => earliestFinish[depId] !== undefined);
+                const earliestStartValue = deps.length > 0 ? Math.max(...deps.map(depId => earliestFinish[depId])) : 0;
+                earliestStart[service.id] = earliestStartValue;
+                earliestFinish[service.id] = earliestStartValue + duration;
+            });
+
+            const projectDuration = Math.max(...Object.values(earliestFinish));
+            const latestFinish = {};
+            const latestStart = {};
+            const slack = {};
+
+            sorted.slice().reverse().forEach(service => {
+                const successors = successorMap[service.id] || [];
+                let lf;
+                if (successors.length === 0) {
+                    lf = projectDuration;
+                } else {
+                    lf = Math.min(...successors.map(succId => latestStart[succId] ?? projectDuration));
+                }
+
+                latestFinish[service.id] = lf;
+                const duration = durations[service.id] || 0;
+                const ls = lf - duration;
+                latestStart[service.id] = ls;
+                const serviceSlack = ls - (earliestStart[service.id] || 0);
+                slack[service.id] = Math.max(0, Math.round(serviceSlack));
+            });
+
+            const lowSlackThreshold = appSettings.thresholds.lowSlack ?? DEFAULT_THRESHOLDS.lowSlack;
+
+            services.forEach(service => {
+                if (service.status === 'completed' || service.isCompleted) {
+                    service.isCritical = false;
+                    service.slackDays = null;
+                } else {
+                    const serviceSlack = slack[service.id];
+                    if (serviceSlack === undefined || serviceSlack === null) {
+                        service.slackDays = null;
+                        service.isCritical = false;
+                    } else {
+                        service.slackDays = serviceSlack;
+                        service.isCritical = serviceSlack === 0;
+                    }
+                }
+            });
+
+            const criticalServices = activeServices.filter(service => service.isCritical).map(service => service.id);
+            const lowSlackServices = activeServices
+                .filter(service => !service.isCritical && service.slackDays !== null && service.slackDays <= lowSlackThreshold)
+                .map(service => service.id);
+
+            criticalMetrics = {
+                projectDuration,
+                earliestStart,
+                earliestFinish,
+                latestStart,
+                latestFinish,
+                slack,
+                criticalServices,
+                lowSlackServices,
+                updatedAt: new Date().toISOString()
+            };
+
+            return criticalMetrics;
+        }
+
+        function updateRiskPanel(loadSummary = resourceLoadSummary) {
+            const metrics = criticalMetrics || calculateCriticalPath();
+            const durationEl = document.getElementById('criticalDurationDays');
+            const criticalCountEl = document.getElementById('criticalServiceCount');
+            const lowSlackCountEl = document.getElementById('lowSlackServiceCount');
+            const updatedAtEl = document.getElementById('riskUpdatedAt');
+            const riskListEl = document.getElementById('riskList');
+            const emptyEl = document.getElementById('riskEmptyState');
+
+            if (durationEl) {
+                durationEl.textContent = metrics.projectDuration ? `${formatNumber(metrics.projectDuration)} gün` : '-';
+            }
+            if (criticalCountEl) {
+                criticalCountEl.textContent = metrics.criticalServices ? formatNumber(metrics.criticalServices.length) : '0';
+            }
+            if (lowSlackCountEl) {
+                lowSlackCountEl.textContent = metrics.lowSlackServices ? formatNumber(metrics.lowSlackServices.length) : '0';
+            }
+            if (updatedAtEl) {
+                updatedAtEl.textContent = metrics.updatedAt ? formatDateTimeWithHours(metrics.updatedAt) : '-';
+            }
+
+            if (!riskListEl || !emptyEl) return;
+
+            const lowSlackThreshold = appSettings.thresholds.lowSlack ?? DEFAULT_THRESHOLDS.lowSlack;
+            const riskItems = [];
+
+            (metrics.criticalServices || []).forEach(serviceId => {
+                const service = services.find(s => s.id === serviceId);
+                if (!service) return;
+                riskItems.push({
+                    severity: 'high',
+                    title: `${service.name} kritik yol üzerinde`,
+                    detail: `Esnek süre: 0 gün • Faz ${service.phase}`,
+                    badge: 'Kritik Yol'
+                });
+            });
+
+            (metrics.lowSlackServices || []).forEach(serviceId => {
+                const service = services.find(s => s.id === serviceId);
+                if (!service) return;
+                riskItems.push({
+                    severity: 'medium',
+                    title: `${service.name} slack sınırında`,
+                    detail: `Esnek süre: ${service.slackDays} gün • Limit: ${lowSlackThreshold} gün`,
+                    badge: 'Düşük Esneklik'
+                });
+            });
+
+            const today = new Date();
+            const overdueBufferDays = appSettings.thresholds.overdueBuffer ?? DEFAULT_THRESHOLDS.overdueBuffer;
+            const overdueThresholdDate = new Date(today);
+            overdueThresholdDate.setDate(overdueThresholdDate.getDate() - overdueBufferDays);
+            services.forEach(service => {
+                if (service.status === 'completed' || service.isCompleted) return;
+                const plannedStart = parseDate(service.devStartDate || service.analysisStartDate || service.startDate);
+                if (plannedStart && plannedStart < overdueThresholdDate && (service.status === 'pending' || service.status === 'analysis')) {
+                    riskItems.push({
+                        severity: 'medium',
+                        title: `${service.name} gecikme riski taşıyor`,
+                        detail: `Planlanan başlangıç ${service.devStartDate || service.analysisStartDate || service.startDate}`,
+                        badge: 'Gecikme'
+                    });
+                }
+
+                if ((service.duration || 0) > 0 && !service.developer) {
+                    riskItems.push({
+                        severity: 'low',
+                        title: `${service.name} için geliştirici atanmamış`,
+                        detail: 'Kaynak ataması yapılmadığı için plan ertelenebilir.',
+                        badge: 'Kaynak'
+                    });
+                }
+            });
+
+            if (loadSummary && Array.isArray(loadSummary.overloads)) {
+                loadSummary.overloads.slice(0, 5).forEach(overload => {
+                    const ratioPercent = Math.round(overload.ratio * 100);
+                    const name = overload.type === 'developer' ? getDeveloperName(overload.resourceId)
+                                : overload.type === 'analyst' ? getAnalystName(overload.resourceId)
+                                : getTesterName(overload.resourceId);
+                    riskItems.push({
+                        severity: overload.ratio >= 1.3 ? 'high' : 'medium',
+                        title: `${name} kapasite aşıyor`,
+                        detail: `${formatWeekLabel(overload.weekKey)} haftasında ${formatNumber(overload.load)}g yük • Limit ${formatNumber(overload.capacity)}g (${ratioPercent}%)`,
+                        badge: overload.type === 'developer' ? 'Dev Kapasite' : overload.type === 'analyst' ? 'Analist Kapasite' : 'Test Kapasite'
+                    });
+                });
+            }
+
+            if (riskItems.length === 0) {
+                riskListEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+            } else {
+                emptyEl.style.display = 'none';
+                riskListEl.innerHTML = riskItems.map(item => `
+                    <div class="risk-item ${item.severity === 'low' ? 'low' : ''}">
+                        <div>
+                            <strong>${item.title}</strong>
+                            <p>${item.detail}</p>
+                        </div>
+                        <span class="info-pill">${item.badge}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function calculateResourceLoads() {
+            const summary = {
+                analyst: {},
+                developer: {},
+                tester: {},
+                serviceMap: {
+                    analyst: {},
+                    developer: {},
+                    tester: {}
+                },
+                weeks: new Set(),
+                overloads: [],
+                updatedAt: new Date().toISOString()
+            };
+
+            const capacityDefaults = {
+                analyst: appSettings.capacities.analyst ?? DEFAULT_CAPACITY.analyst,
+                developer: appSettings.capacities.developer ?? DEFAULT_CAPACITY.developer,
+                tester: appSettings.capacities.tester ?? DEFAULT_CAPACITY.tester
+            };
+
+            function ensureServiceMap(resourceType, resourceId, weekKey) {
+                if (!summary.serviceMap[resourceType][resourceId]) {
+                    summary.serviceMap[resourceType][resourceId] = {};
+                }
+                if (!summary.serviceMap[resourceType][resourceId][weekKey]) {
+                    summary.serviceMap[resourceType][resourceId][weekKey] = new Set();
+                }
+            }
+
+            function addLoad(resourceType, resourceId, startStr, endStr, serviceId) {
+                const startDate = parseDate(startStr);
+                const endDate = parseDate(endStr);
+                if (!startDate || !endDate) return;
+                let cursor = new Date(startDate);
+                while (cursor <= endDate) {
+                    if (!isWeekend(cursor)) {
+                        const weekKey = getIsoWeekKey(cursor);
+                        if (weekKey) {
+                            summary.weeks.add(weekKey);
+                            if (!summary[resourceType][resourceId]) {
+                                summary[resourceType][resourceId] = {};
+                            }
+                            summary[resourceType][resourceId][weekKey] = (summary[resourceType][resourceId][weekKey] || 0) + 1;
+                            if (serviceId) {
+                                ensureServiceMap(resourceType, resourceId, weekKey);
+                                summary.serviceMap[resourceType][resourceId][weekKey].add(serviceId);
+                            }
+                        }
+                    }
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+            }
+
+            services.forEach(service => {
+                if (service.status === 'completed' || service.isCompleted) return;
+
+                if (service.analyst && service.analysisStartDate && service.analysisEndDate) {
+                    addLoad('analyst', service.analyst, service.analysisStartDate, service.analysisEndDate, service.id);
+                }
+                if (service.developer && service.devStartDate && service.devEndDate) {
+                    addLoad('developer', service.developer, service.devStartDate, service.devEndDate, service.id);
+                }
+                if (service.tester && service.testStartDate) {
+                    const testerEnd = service.bufferEndDate || service.testEndDate;
+                    if (testerEnd) {
+                        addLoad('tester', service.tester, service.testStartDate, testerEnd, service.id);
+                    }
+                }
+            });
+
+            const overloads = [];
+
+            ['analyst', 'developer', 'tester'].forEach(type => {
+                Object.entries(summary[type]).forEach(([resourceId, weeks]) => {
+                    Object.entries(weeks).forEach(([weekKey, load]) => {
+                        const capacity = capacityDefaults[type];
+                        if (load > capacity) {
+                            overloads.push({
+                                type,
+                                resourceId,
+                                weekKey,
+                                load,
+                                capacity,
+                                ratio: load / capacity
+                            });
+                        }
+                    });
+                });
+            });
+
+            summary.overloads = overloads.sort((a, b) => b.ratio - a.ratio);
+            resourceLoadSummary = summary;
+            return summary;
+        }
+
+        function renderCapacityCharts(summary = resourceLoadSummary) {
+            if (!summary) {
+                summary = calculateResourceLoads();
+            }
+
+            const weekKeys = Array.from(summary.weeks).sort(compareIsoWeeks);
+            if (weekKeys.length === 0) {
+                const placeholder = getIsoWeekKey(new Date());
+                if (placeholder) {
+                    weekKeys.push(placeholder);
+                }
+            }
+
+            const typeConfigs = [
+                { type: 'developer', canvasId: 'developerCapacityChart', nameFn: getDeveloperName, color: '#3498db' },
+                { type: 'analyst', canvasId: 'analystCapacityChart', nameFn: getAnalystName, color: '#9b59b6' },
+                { type: 'tester', canvasId: 'testerCapacityChart', nameFn: getTesterName, color: '#2ecc71' }
+            ];
+
+            const palette = ['#3498db', '#2ecc71', '#e74c3c', '#9b59b6', '#f1c40f', '#16a085', '#8e44ad', '#2c3e50'];
+
+            typeConfigs.forEach(config => {
+                const ctx = document.getElementById(config.canvasId);
+                if (!ctx) return;
+
+                if (charts.capacity[config.type]) {
+                    charts.capacity[config.type].destroy();
+                }
+
+                const resourceLoads = summary[config.type] || {};
+                const datasets = [];
+                let colorIndex = 0;
+
+                Object.keys(resourceLoads).forEach(resourceId => {
+                    const color = palette[colorIndex % palette.length];
+                    colorIndex++;
+                    const name = config.nameFn(resourceId);
+                    datasets.push({
+                        label: name,
+                        data: weekKeys.map(week => resourceLoads[resourceId][week] || 0),
+                        backgroundColor: color,
+                        stack: 'usage',
+                        borderWidth: 1
+                    });
+                });
+
+                const capacityValue = appSettings.capacities[config.type] ?? DEFAULT_CAPACITY[config.type];
+                datasets.push({
+                    type: 'line',
+                    label: 'Kapasite',
+                    data: weekKeys.map(() => capacityValue),
+                    borderColor: '#1f3c5d',
+                    backgroundColor: 'rgba(31, 60, 93, 0.2)',
+                    borderDash: [6, 4],
+                    pointRadius: 0,
+                    fill: false
+                });
+
+                charts.capacity[config.type] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: weekKeys.map(formatWeekLabel),
+                        datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                beginAtZero: true,
+                                stacked: true,
+                                title: {
+                                    display: true,
+                                    text: 'İş Günü'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            });
+
+            const peakLabelEl = document.getElementById('capacityPeakWeek');
+            const overloadCountEl = document.getElementById('capacityOverloadCount');
+            const settingsInfoEl = document.getElementById('capacitySettingsInfo');
+
+            if (overloadCountEl) {
+                overloadCountEl.textContent = formatNumber(summary.overloads.length);
+            }
+
+            if (settingsInfoEl) {
+                settingsInfoEl.textContent = `Analist ${appSettings.capacities.analyst}g • Geliştirici ${appSettings.capacities.developer}g • Tester ${appSettings.capacities.tester}g`;
+            }
+
+            if (peakLabelEl) {
+                if (summary.overloads.length === 0) {
+                    peakLabelEl.textContent = '-';
+                } else {
+                    const top = summary.overloads[0];
+                    const name = top.type === 'developer' ? getDeveloperName(top.resourceId) :
+                                 top.type === 'analyst' ? getAnalystName(top.resourceId) :
+                                 getTesterName(top.resourceId);
+                    const percent = Math.round(top.ratio * 100);
+                    peakLabelEl.textContent = `${name} • ${formatWeekLabel(top.weekKey)} • ${percent}%`;
+                }
+            }
+        }
+
+        function openCapacitySettings() {
+            const modal = document.getElementById('capacitySettingsModal');
+            if (!modal) return;
+            document.getElementById('capacityAnalystInput').value = appSettings.capacities.analyst ?? DEFAULT_CAPACITY.analyst;
+            document.getElementById('capacityDeveloperInput').value = appSettings.capacities.developer ?? DEFAULT_CAPACITY.developer;
+            document.getElementById('capacityTesterInput').value = appSettings.capacities.tester ?? DEFAULT_CAPACITY.tester;
+            document.getElementById('lowSlackThresholdInput').value = appSettings.thresholds.lowSlack ?? DEFAULT_THRESHOLDS.lowSlack;
+            document.getElementById('overdueThresholdInput').value = appSettings.thresholds.overdueBuffer ?? DEFAULT_THRESHOLDS.overdueBuffer;
+            modal.style.display = 'block';
+        }
+
+        function closeCapacitySettings() {
+            const modal = document.getElementById('capacitySettingsModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function saveCapacitySettings() {
+            const analystValue = parseInt(document.getElementById('capacityAnalystInput').value, 10);
+            const developerValue = parseInt(document.getElementById('capacityDeveloperInput').value, 10);
+            const testerValue = parseInt(document.getElementById('capacityTesterInput').value, 10);
+            const slackValue = parseInt(document.getElementById('lowSlackThresholdInput').value, 10);
+            const overdueValue = parseInt(document.getElementById('overdueThresholdInput').value, 10);
+
+            if ([analystValue, developerValue, testerValue].some(val => isNaN(val) || val <= 0)) {
+                alert('⚠️ Kapasite değerleri pozitif birer sayı olmalıdır.');
+                return;
+            }
+
+            appSettings.capacities.analyst = analystValue;
+            appSettings.capacities.developer = developerValue;
+            appSettings.capacities.tester = testerValue;
+            appSettings.thresholds.lowSlack = isNaN(slackValue) ? DEFAULT_THRESHOLDS.lowSlack : Math.max(0, slackValue);
+            appSettings.thresholds.overdueBuffer = isNaN(overdueValue) ? DEFAULT_THRESHOLDS.overdueBuffer : Math.max(0, overdueValue);
+
+            closeCapacitySettings();
+            persistScenarioData();
+            recalculateAll();
+            alert('✅ Kapasite ve risk parametreleri güncellendi.');
+        }
+
+        function generateRebalanceSuggestions(summary = resourceLoadSummary) {
+            if (!summary) {
+                summary = calculateResourceLoads();
+            }
+
+            const suggestions = [];
+            const seen = new Set();
+            const capacityLimits = {
+                developer: appSettings.capacities.developer ?? DEFAULT_CAPACITY.developer,
+                analyst: appSettings.capacities.analyst ?? DEFAULT_CAPACITY.analyst,
+                tester: appSettings.capacities.tester ?? DEFAULT_CAPACITY.tester
+            };
+
+            const resourceLists = {
+                developer: developers,
+                analyst: analysts,
+                tester: testers
+            };
+
+            const nameResolvers = {
+                developer: getDeveloperName,
+                analyst: getAnalystName,
+                tester: getTesterName
+            };
+
+            summary.overloads.forEach(overload => {
+                if (suggestions.length >= 6) return;
+
+                const weekServicesSet = summary.serviceMap[overload.type]?.[overload.resourceId]?.[overload.weekKey];
+                if (!weekServicesSet) return;
+
+                const weekServices = Array.from(weekServicesSet);
+                weekServices.some(serviceId => {
+                    const key = `${overload.type}-${serviceId}`;
+                    if (seen.has(key)) {
+                        return false;
+                    }
+                    const service = services.find(s => s.id === serviceId);
+                    if (!service) return false;
+
+                    const startKey = overload.type === 'developer' ? 'devStartDate' :
+                                     overload.type === 'analyst' ? 'analysisStartDate' : 'testStartDate';
+                    const endKey = overload.type === 'developer' ? 'devEndDate' :
+                                   overload.type === 'analyst' ? 'analysisEndDate' :
+                                   (service.bufferEndDate ? 'bufferEndDate' : 'testEndDate');
+
+                    const serviceStart = service[startKey];
+                    const serviceEnd = service[endKey];
+                    if (!serviceStart || !serviceEnd) {
+                        return false;
+                    }
+
+                    const taskStartDate = parseDate(serviceStart);
+                    const candidateResources = resourceLists[overload.type]
+                        .filter(resource => resource.id !== overload.resourceId)
+                        .filter(resource => {
+                            const resourceStart = parseDate(resource.startDate);
+                            return !resourceStart || !taskStartDate || resourceStart <= taskStartDate;
+                        })
+                        .map(resource => ({
+                            resource,
+                            load: summary[overload.type][resource.id]?.[overload.weekKey] || 0
+                        }))
+                        .sort((a, b) => a.load - b.load);
+
+                    const capacityLimit = capacityLimits[overload.type];
+                    const target = candidateResources.find(candidate => candidate.load < capacityLimit);
+                    if (!target) {
+                        return false;
+                    }
+
+                    const resourceField = overload.type;
+                    const typeDuration = overload.type === 'developer'
+                        ? (service.duration || 0)
+                        : overload.type === 'analyst'
+                            ? (service.analysisDuration || 0)
+                            : getTestDuration(service);
+                    suggestions.push({
+                        type: overload.type,
+                        resourceField,
+                        serviceId,
+                        serviceName: service.name,
+                        fromResourceId: overload.resourceId,
+                        fromResourceName: nameResolvers[overload.type](overload.resourceId),
+                        toResourceId: target.resource.id,
+                        toResourceName: nameResolvers[overload.type](target.resource.id),
+                        weekKey: overload.weekKey,
+                        reliefDays: Math.min(overload.load - capacityLimit, typeDuration || 1)
+                    });
+                    seen.add(key);
+                    return suggestions.length >= 6;
+                });
+            });
+
+            return suggestions;
+        }
+
+        function openRebalanceModal() {
+            const modal = document.getElementById('rebalanceModal');
+            const content = document.getElementById('rebalanceContent');
+            if (!modal || !content) return;
+
+            const summary = calculateResourceLoads();
+            const suggestions = generateRebalanceSuggestions(summary);
+            pendingRebalanceSuggestions = suggestions;
+
+            if (!suggestions || suggestions.length === 0) {
+                content.innerHTML = `
+                    <div class="info-note" style="width: 100%;">
+                        Şu anda önerilecek otomatik kaynak değişimi bulunmuyor. Kapasite ayarlarını gözden geçirebilir veya servis sürelerini yeniden planlayabilirsiniz.
+                    </div>
+                `;
+            } else {
+                content.innerHTML = suggestions.map((suggestion, index) => `
+                    <label style="display: flex; gap: 10px; align-items: center; border: 1px solid #d6e2f1; border-radius: 6px; padding: 10px;">
+                        <input type="checkbox" id="rebalance-${index}" checked>
+                        <div style="flex: 1;">
+                            <strong>${suggestion.serviceName}</strong>
+                            <div style="font-size: 12px; color: #546e7a; margin-top: 4px;">
+                                ${formatWeekLabel(suggestion.weekKey)} haftasında ${suggestion.fromResourceName} → ${suggestion.toResourceName} transferi öneriliyor. Tahmini rahatlama: ${formatNumber(Math.abs(suggestion.reliefDays))} gün.
+                            </div>
+                        </div>
+                        <span class="info-pill">${suggestion.type === 'developer' ? 'Geliştirici' : suggestion.type === 'analyst' ? 'Analist' : 'Test'}</span>
+                    </label>
+                `).join('');
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeRebalanceModal() {
+            const modal = document.getElementById('rebalanceModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function applyRebalanceSuggestions() {
+            if (!pendingRebalanceSuggestions || pendingRebalanceSuggestions.length === 0) {
+                closeRebalanceModal();
+                return;
+            }
+
+            let appliedCount = 0;
+
+            pendingRebalanceSuggestions.forEach((suggestion, index) => {
+                const checkbox = document.getElementById(`rebalance-${index}`);
+                if (!checkbox || !checkbox.checked) {
+                    return;
+                }
+
+                const service = services.find(s => s.id === suggestion.serviceId);
+                if (!service) return;
+
+                service[suggestion.resourceField] = suggestion.toResourceId;
+                appliedCount++;
+            });
+
+            closeRebalanceModal();
+
+            if (appliedCount > 0) {
+                recalculateAll();
+                alert(`✅ ${appliedCount} öneri uygulandı. Plan yeniden hesaplandı.`);
+            } else {
+                alert('ℹ️ Uygulanacak öneri seçilmedi.');
+            }
+            pendingRebalanceSuggestions = [];
+        }
+
+        function calculateProgressTimeline() {
+            const totalPlanned = services.reduce((sum, service) => {
+                return sum + getServiceTotalPlannedDays(service, {
+                    globalTestDuration,
+                    globalBufferDuration
+                });
+            }, 0);
+
+            const datesSet = new Set();
+            const serviceLogs = {};
+
+            services.forEach(service => {
+                const logs = (service.progressLog || []).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+                serviceLogs[service.id] = logs;
+                logs.forEach(log => datesSet.add(log.date));
+            });
+
+            datesSet.add(new Date().toISOString());
+            const sortedDates = Array.from(datesSet)
+                .map(date => new Date(date))
+                .sort((a, b) => a.getTime() - b.getTime());
+
+            const labels = sortedDates.map(date => formatDate(date));
+            const remaining = [];
+            const completed = [];
+
+            sortedDates.forEach(datePoint => {
+                let completedDays = 0;
+                services.forEach(service => {
+                    const plannedDays = getServiceTotalPlannedDays(service, {
+                        globalTestDuration,
+                        globalBufferDuration
+                    });
+                    if (plannedDays <= 0) return;
+
+                    const logs = serviceLogs[service.id];
+                    let value = 0;
+                    if (logs && logs.length > 0) {
+                        for (let i = 0; i < logs.length; i++) {
+                            const logDate = new Date(logs[i].date);
+                            if (logDate <= datePoint) {
+                                value = logs[i].value;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    if (new Date() >= datePoint) {
+                        value = service.progressPercent || value;
+                    }
+                    completedDays += plannedDays * (value / 100);
+                });
+
+                completed.push(completedDays);
+                remaining.push(Math.max(0, totalPlanned - completedDays));
+            });
+
+            return {
+                labels,
+                remaining,
+                completed,
+                totalPlanned
+            };
+        }
+
+        function calculatePhasePerformance() {
+            const phases = {};
+            const actuals = {};
+
+            services.forEach(service => {
+                const phase = service.phase || 0;
+                const plannedDays = getServiceTotalPlannedDays(service, {
+                    globalTestDuration,
+                    globalBufferDuration
+                });
+                phases[phase] = (phases[phase] || 0) + plannedDays;
+
+                if (service.progressPercent === 100) {
+                    let actualDuration = service.actualDuration;
+                    if (!actualDuration && service.actualStartDate && service.actualEndDate) {
+                        actualDuration = calculateBusinessDaysBetween(service.actualStartDate, service.actualEndDate);
+                    }
+                    if (actualDuration) {
+                        actuals[phase] = (actuals[phase] || 0) + actualDuration;
+                    }
+                }
+            });
+
+            const phaseKeys = Object.keys(phases)
+                .map(key => Number(key))
+                .filter(key => key > 0)
+                .sort((a, b) => a - b);
+            const labels = phaseKeys.map(phase => `Faz ${phase}`);
+            const plannedData = phaseKeys.map(phase => phases[phase] || 0);
+            const actualData = phaseKeys.map(phase => actuals[phase] || 0);
+
+            return { labels, plannedData, actualData };
+        }
+
+        function updateProgressVisuals() {
+            const timeline = calculateProgressTimeline();
+            const phasePerformance = calculatePhasePerformance();
+
+            const plannedEl = document.getElementById('progressPlannedDays');
+            const completedEl = document.getElementById('progressCompletedDays');
+            const averageEl = document.getElementById('progressAverage');
+            const activeEl = document.getElementById('progressActiveServices');
+
+            const totalProgress = services.reduce((sum, service) => sum + (service.progressPercent || 0), 0);
+            const avgProgress = services.length > 0 ? (totalProgress / services.length) : 0;
+            const completedDays = timeline.completed.length > 0 ? timeline.completed[timeline.completed.length - 1] : 0;
+            const activeServices = services.filter(service => (service.progressPercent || 0) > 0 && (service.progressPercent || 0) < 100).length;
+
+            if (plannedEl) plannedEl.textContent = formatNumber(timeline.totalPlanned);
+            if (completedEl) completedEl.textContent = formatNumber(completedDays);
+            if (averageEl) averageEl.textContent = `${avgProgress.toFixed(1)}%`;
+            if (activeEl) activeEl.textContent = formatNumber(activeServices);
+
+            const idealRemaining = timeline.labels.map((_, index) => {
+                if (timeline.labels.length <= 1) return timeline.totalPlanned;
+                const fraction = index / (timeline.labels.length - 1);
+                return Math.max(0, timeline.totalPlanned * (1 - fraction));
+            });
+
+            const burndownCtx = document.getElementById('burndownChart');
+            if (burndownCtx) {
+                if (charts.burndown) charts.burndown.destroy();
+                charts.burndown = new Chart(burndownCtx, {
+                    type: 'line',
+                    data: {
+                        labels: timeline.labels,
+                        datasets: [
+                            {
+                                label: 'Kalan İş',
+                                data: timeline.remaining,
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                                tension: 0.3
+                            },
+                            {
+                                label: 'İdeal',
+                                data: idealRemaining,
+                                borderColor: '#95a5a6',
+                                backgroundColor: 'rgba(149, 165, 166, 0.15)',
+                                borderDash: [6, 4],
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'İş Günü'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const burnupCtx = document.getElementById('burnupChart');
+            if (burnupCtx) {
+                if (charts.burnup) charts.burnup.destroy();
+                charts.burnup = new Chart(burnupCtx, {
+                    type: 'line',
+                    data: {
+                        labels: timeline.labels,
+                        datasets: [
+                            {
+                                label: 'Tamamlanan İş',
+                                data: timeline.completed,
+                                borderColor: '#2ecc71',
+                                backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Toplam Kapsam',
+                                data: timeline.labels.map(() => timeline.totalPlanned),
+                                borderColor: '#34495e',
+                                backgroundColor: 'rgba(52, 73, 94, 0.1)',
+                                borderDash: [4, 4],
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'İş Günü'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const expectedActualCtx = document.getElementById('expectedActualChart');
+            if (expectedActualCtx) {
+                if (charts.expectedActual) charts.expectedActual.destroy();
+                charts.expectedActual = new Chart(expectedActualCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: phasePerformance.labels,
+                        datasets: [
+                            {
+                                label: 'Planlanan',
+                                data: phasePerformance.plannedData,
+                                backgroundColor: 'rgba(52, 152, 219, 0.6)'
+                            },
+                            {
+                                label: 'Gerçekleşen',
+                                data: phasePerformance.actualData,
+                                backgroundColor: 'rgba(231, 76, 60, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'İş Günü'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function buildProgressReportContent() {
+            const content = document.getElementById('progressReportContent');
+            if (!content) return;
+
+            const timeline = calculateProgressTimeline();
+            const completedDays = timeline.completed.length > 0 ? timeline.completed[timeline.completed.length - 1] : 0;
+            const remainingDays = timeline.totalPlanned - completedDays;
+
+            const topRisks = (resourceLoadSummary?.overloads || []).slice(0, 3).map(overload => {
+                const name = overload.type === 'developer' ? getDeveloperName(overload.resourceId)
+                            : overload.type === 'analyst' ? getAnalystName(overload.resourceId)
+                            : getTesterName(overload.resourceId);
+                const percent = Math.round(overload.ratio * 100);
+                return `<li>${formatWeekLabel(overload.weekKey)} • ${name} • ${percent}% kapasite</li>`;
+            }).join('');
+
+            const serviceRows = services
+                .slice()
+                .sort((a, b) => (b.progressPercent || 0) - (a.progressPercent || 0))
+                .slice(0, 10)
+                .map(service => `
+                    <tr>
+                        <td>${service.name}</td>
+                        <td style="text-align:center;">${service.progressPercent || 0}%</td>
+                        <td>${service.actualStartDate ? formatDate(service.actualStartDate) : '-'}</td>
+                        <td>${service.actualEndDate ? formatDate(service.actualEndDate) : '-'}</td>
+                    </tr>
+                `).join('');
+
+            content.innerHTML = `
+                <div class="panel" style="margin: 0;">
+                    <div class="scenario-meta">
+                        <div>Planlanan: <span>${formatNumber(timeline.totalPlanned)} gün</span></div>
+                        <div>Tamamlanan: <span>${formatNumber(completedDays)} gün</span></div>
+                        <div>Kalan: <span>${formatNumber(Math.max(0, remainingDays))} gün</span></div>
+                        <div>Güncelleme: <span>${formatDateTimeWithHours(new Date())}</span></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 8px; color: #2c3e50;">Öne Çıkan Servisler</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f0f4f8;">
+                                <th style="padding: 6px 8px; text-align: left;">Servis</th>
+                                <th style="padding: 6px 8px; text-align: center;">Tamamlanma</th>
+                                <th style="padding: 6px 8px; text-align: left;">Başlangıç</th>
+                                <th style="padding: 6px 8px; text-align: left;">Bitiş</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${serviceRows}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 8px; color: #2c3e50;">Kapsite Riskleri</h4>
+                    <ul style="margin-left: 18px; color: #546e7a;">
+                        ${topRisks || '<li>Belirgin kapasite riski bulunmuyor.</li>'}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function openProgressReport() {
+            buildProgressReportContent();
+            const modal = document.getElementById('progressReportModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeProgressReport() {
+            const modal = document.getElementById('progressReportModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
         // Helper functions to get test and buffer duration (considering global overrides)
         function getTestDuration(service) {
             if (globalTestDuration !== null && !service.isCompleted) {
@@ -867,6 +3141,23 @@
                 console.error('addBusinessDays error:', e);
                 return new Date();
             }
+        }
+
+        function calculateBusinessDaysBetween(startDateStr, endDateStr) {
+            const startDate = parseDate(startDateStr);
+            const endDate = parseDate(endDateStr);
+            if (!startDate || !endDate || endDate < startDate) {
+                return 0;
+            }
+            let count = 0;
+            const cursor = new Date(startDate);
+            while (cursor <= endDate) {
+                if (!isWeekend(cursor)) {
+                    count++;
+                }
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            return count;
         }
 
         function formatDate(date) {
@@ -962,6 +3253,62 @@
             }
         }
 
+        function getServiceCompletionDate(service, options = {}) {
+            if (!service) return null;
+            const {
+                includeDevelopment = true,
+                includeAnalysis = true
+            } = options;
+
+            const completionCandidates = [
+                service.bufferEndDate,
+                service.testEndDate
+            ];
+
+            if (includeDevelopment) {
+                completionCandidates.push(service.devEndDate);
+            }
+
+            if (includeAnalysis) {
+                completionCandidates.push(service.analysisEndDate);
+            }
+
+            for (const candidate of completionCandidates) {
+                const parsed = parseDate(candidate);
+                if (parsed) {
+                    return parsed;
+                }
+            }
+
+            return null;
+        }
+
+        function getSafeStartDate(dateString, resourceType, resourceId) {
+            let date = parseDate(dateString);
+
+            if (!date) {
+                console.warn(`${resourceType} (${resourceId}) için geçerli başlangıç tarihi bulunamadı. Bugünün tarihi kullanıldı.`);
+                const today = new Date();
+                date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            } else {
+                date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            }
+
+            return date;
+        }
+
+        function resetServiceScheduleFields(service) {
+            service.analysisStartDate = null;
+            service.analysisEndDate = null;
+            service.devStartDate = null;
+            service.devEndDate = null;
+            service.testStartDate = null;
+            service.testEndDate = null;
+            service.bufferEndDate = null;
+            service.startDate = null;
+            service.endDate = null;
+        }
+
         // SMART Schedule calculation engine - always sequential (no conflicts)
         function calculateSchedule() {
             calculateAutoSchedule();
@@ -1044,6 +3391,8 @@
                 });
                 return;
             }
+
+            activeServices.forEach(resetServiceScheduleFields);
             
             // Sort services by dependencies (topological sort)
             const sortedServices = topologicalSort(activeServices);
@@ -1068,7 +3417,7 @@
                 const analyst = analysts.find(a => a.id === analystId);
                 if (!analyst) return;
 
-                let currentDate = parseDate(analyst.startDate);
+                let currentDate = getSafeStartDate(analyst.startDate, 'Analist', analyst.id);
                 while (isWeekend(currentDate)) {
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -1080,13 +3429,12 @@
                         service.dependencies.forEach(depId => {
                             const depService = services.find(s => s.id === depId);
                             if (depService) {
-                                // Use bufferEndDate if available, otherwise testEndDate
-                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
-                                if (depEndDateStr) {
-                                    const depEnd = parseDate(depEndDateStr);
-                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
-                                        dependencyEndDate = depEnd;
-                                    }
+                                const depEnd = getServiceCompletionDate(depService, {
+                                    includeDevelopment: false,
+                                    includeAnalysis: false
+                                });
+                                if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                    dependencyEndDate = depEnd;
                                 }
                             }
                         });
@@ -1132,7 +3480,7 @@
                 const dev = developers.find(d => d.id === devId);
                 if (!dev) return;
 
-                let currentDate = parseDate(dev.startDate);
+                let currentDate = getSafeStartDate(dev.startDate, 'Geliştirici', dev.id);
                 while (isWeekend(currentDate)) {
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -1156,13 +3504,9 @@
                         service.dependencies.forEach(depId => {
                             const depService = services.find(s => s.id === depId);
                             if (depService) {
-                                // Use bufferEndDate if available, otherwise testEndDate
-                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
-                                if (depEndDateStr) {
-                                    const depEnd = parseDate(depEndDateStr);
-                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
-                                        dependencyEndDate = depEnd;
-                                    }
+                                const depEnd = getServiceCompletionDate(depService);
+                                if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                    dependencyEndDate = depEnd;
                                 }
                             }
                         });
@@ -1197,7 +3541,7 @@
                 const tester = testers.find(t => t.id === testerId);
                 if (!tester) return;
 
-                let currentDate = parseDate(tester.startDate);
+                let currentDate = getSafeStartDate(tester.startDate, 'Test Uzmanı', tester.id);
                 while (isWeekend(currentDate)) {
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -1221,13 +3565,9 @@
                         service.dependencies.forEach(depId => {
                             const depService = services.find(s => s.id === depId);
                             if (depService) {
-                                // Use bufferEndDate if available, otherwise testEndDate
-                                const depEndDateStr = depService.bufferEndDate || depService.testEndDate;
-                                if (depEndDateStr) {
-                                    const depEnd = parseDate(depEndDateStr);
-                                    if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
-                                        dependencyEndDate = depEnd;
-                                    }
+                                const depEnd = getServiceCompletionDate(depService);
+                                if (depEnd && (!dependencyEndDate || depEnd > dependencyEndDate)) {
+                                    dependencyEndDate = depEnd;
                                 }
                             }
                         });
@@ -1367,13 +3707,15 @@
                 'completed': 'Tamamlandı'
             };
             
+            const lowSlackThreshold = appSettings.thresholds.lowSlack ?? DEFAULT_THRESHOLDS.lowSlack;
+
             tbody.innerHTML = services.map(service => {
                 // Determine row class and check for conflicts
-                let rowClass = '';
+                const rowClasses = [];
                 let conflictWarning = '';
                 
                 if (service.status === 'completed' || service.isCompleted) {
-                    rowClass = 'completed';
+                    rowClasses.push('completed');
                 } else {
                     // Check for resource conflicts
                     let totalConflicts = 0;
@@ -1404,10 +3746,29 @@
                     }
                     
                     if (totalConflicts > 0) {
-                        rowClass = 'conflict';
-                        conflictWarning = ` <span style="color: #e67e22; font-weight: bold;" title="${conflictMessages.join('\n')}">⚠️ ${totalConflicts} çakışma</span>`;
+                        rowClasses.push('conflict');
+                        conflictWarning = `<span style="color: #e67e22; font-weight: bold;" title="${conflictMessages.join('\n')}">⚠️ ${totalConflicts} çakışma</span>`;
+                    }
+
+                    if (service.isCritical) {
+                        rowClasses.push('critical');
+                    } else if (service.slackDays !== null && service.slackDays <= lowSlackThreshold) {
+                        rowClasses.push('low-slack');
                     }
                 }
+
+                const rowClass = rowClasses.join(' ');
+                const badges = [];
+                if (service.isCritical) {
+                    badges.push('<span class="info-pill critical">Kritik Yol</span>');
+                } else if (service.slackDays !== null) {
+                    badges.push(`<span class="info-pill slack">Zaman esnekliği: ${formatNumber(service.slackDays)} iş günü</span>`);
+                }
+                if ((service.duration || 0) > 0 && !service.developer && service.status !== 'completed') {
+                    badges.push('<span class="info-pill">Geliştirici?</span>');
+                }
+                const badgeHtml = badges.length > 0 ? `<div class="service-badge-row">${badges.join(' ')}</div>` : '';
+                const serviceTitleHtml = `<div class="service-name-row"><strong>${service.name}</strong><small style="color: #7f8c8d;">(${service.category})</small>${conflictWarning || ''}</div>`;
                 
                 return `
                     <tr class="${rowClass}">
@@ -1420,7 +3781,7 @@
                                 <option value="5" ${service.phase === 5 ? 'selected' : ''}>Faz 5</option>
                             </select>
                         </td>
-                        <td><strong>${service.name}</strong> <small style="color: #7f8c8d;">(${service.category})</small>${conflictWarning}</td>
+                        <td>${serviceTitleHtml}${badgeHtml}</td>
                         <td class="date-cell" style="font-weight: 600; background: #e8f8f5;">${service.startDate || '-'}</td>
                         <td class="date-cell" style="font-weight: 600; background: #fdeaea;">${service.endDate || '-'}</td>
                         <td>
@@ -1485,6 +3846,20 @@
                                    onchange="updateServiceBufferDuration('${service.id}', this.value)"
                                    style="width: 60px;" 
                                    title="Yedek süre (iş günü)">
+                        </td>
+                        <td>
+                            <div class="progress-input">
+                                <input type="number" min="0" max="100" value="${service.progressPercent || 0}" 
+                                       onchange="updateServiceProgress('${service.id}', this.value)">
+                                <div class="progress-bar">
+                                    <div class="progress-bar-inner" style="width: ${Math.min(100, Math.max(0, service.progressPercent || 0))}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell" style="font-size: 12px; line-height: 1.4;">
+                            ${service.actualStartDate ? formatDate(service.actualStartDate) : '-'}<br/>
+                            ${service.actualEndDate ? formatDate(service.actualEndDate) : '-'}<br/>
+                            <span style="color: #7f8c8d;">${service.actualDuration ? formatNumber(service.actualDuration) + 'g' : '-'}</span>
                         </td>
                         <td style="min-width: 150px;">
                             <button class="dependency-btn" onclick="openDependencyModal('${service.id}')">
@@ -1838,12 +4213,12 @@
         
         function getAnalystName(analystId) {
             const analyst = analysts.find(a => a.id === analystId);
-            return analyst ? analyst.name : analystId;
+            return analyst ? (analyst.displayName || analyst.name) : analystId;
         }
         
         function getTesterName(testerId) {
             const tester = testers.find(t => t.id === testerId);
-            return tester ? tester.name : testerId;
+            return tester ? (tester.displayName || tester.name) : testerId;
         }
         
         function checkResourceConflict(currentServiceId, resourceId, resourceType) {
@@ -1963,6 +4338,55 @@
             }
         }
 
+        function updateServiceProgress(serviceId, progressValue) {
+            const service = services.find(s => s.id === serviceId);
+            if (!service) return;
+
+            let numericValue = parseInt(progressValue, 10);
+            if (isNaN(numericValue)) numericValue = 0;
+            numericValue = Math.max(0, Math.min(100, numericValue));
+            service.progressPercent = numericValue;
+
+            if (!Array.isArray(service.progressLog)) {
+                service.progressLog = [];
+            }
+
+            const nowIso = new Date().toISOString();
+            const lastLog = service.progressLog[service.progressLog.length - 1];
+            if (!lastLog || lastLog.value !== numericValue) {
+                service.progressLog.push({ date: nowIso, value: numericValue });
+            } else {
+                lastLog.date = nowIso;
+            }
+
+            if (numericValue > 0 && !service.actualStartDate) {
+                service.actualStartDate = nowIso;
+            }
+
+            if (numericValue === 100) {
+                service.actualEndDate = nowIso;
+                service.actualDuration = calculateBusinessDaysBetween(service.actualStartDate, service.actualEndDate);
+                if (service.status !== 'completed') {
+                    service.status = 'completed';
+                }
+            } else if (numericValue === 0) {
+                service.actualStartDate = null;
+                service.actualEndDate = null;
+                service.actualDuration = 0;
+                if (service.status === 'completed') {
+                    service.status = 'pending';
+                }
+            } else {
+                service.actualEndDate = null;
+                service.actualDuration = 0;
+                if (service.status === 'pending') {
+                    service.status = 'development';
+                }
+            }
+
+            recalculateAll();
+        }
+
         function updateGlobalTestDuration(value) {
             if (value === '' || value === null || value === undefined) {
                 globalTestDuration = null;
@@ -2065,22 +4489,39 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('dependencyModal');
-            if (event.target === modal) {
-                closeDependencyModal();
-            }
+            const modalConfigs = [
+                { element: document.getElementById('dependencyModal'), close: closeDependencyModal },
+                { element: document.getElementById('scenarioSaveModal'), close: closeScenarioSaveModal },
+                { element: document.getElementById('scenarioLoadModal'), close: closeScenarioLoadModal },
+                { element: document.getElementById('scenarioCompareModal'), close: closeScenarioCompareModal },
+                { element: document.getElementById('capacitySettingsModal'), close: closeCapacitySettings },
+                { element: document.getElementById('rebalanceModal'), close: closeRebalanceModal },
+                { element: document.getElementById('progressReportModal'), close: closeProgressReport }
+            ];
+
+            modalConfigs.forEach(config => {
+                if (config.element && event.target === config.element) {
+                    config.close();
+                }
+            });
         };
 
         function recalculateAll() {
             calculateSchedule();
+            calculateCriticalPath();
             renderServicesTable();
             renderGanttChart();
             updateStatistics();
+            updateScenarioSummaryPanel();
+            const loadSummary = calculateResourceLoads();
+            updateRiskPanel(loadSummary);
+            renderCapacityCharts(loadSummary);
+            updateProgressVisuals();
         }
 
         // Local storage functions
         // Current data version for localStorage
-        const DATA_VERSION = '2.0';
+        const DATA_VERSION = '3.0';
 
         function saveToLocalStorage() {
             try {
@@ -2092,9 +4533,11 @@
                     testers: testers,
                     services: services,
                     globalTestDuration: globalTestDuration,
-                    globalBufferDuration: globalBufferDuration
+                    globalBufferDuration: globalBufferDuration,
+                    appSettings: appSettings
                 };
                 localStorage.setItem('ganttData', JSON.stringify(data));
+                persistScenarioData();
                 alert('✅ İlerleme başarıyla kaydedildi!');
             } catch (e) {
                 console.error('Save to localStorage failed:', e);
@@ -2137,6 +4580,12 @@
                 if (parsed.services && Array.isArray(parsed.services)) {
                     services = parsed.services;
                 }
+
+                if (parsed.appSettings) {
+                    appSettings = deepClone(parsed.appSettings);
+                }
+                initializeSettings();
+                normalizeServices();
                 
                 // Load global test and buffer duration if available
                 if (parsed.globalTestDuration !== undefined) {
@@ -2177,6 +4626,7 @@
                 // Clear localStorage
                 localStorage.removeItem('ganttData');
                 localStorage.removeItem('lastExport');
+                 localStorage.removeItem('ganttScenarios');
                 // Reload page to load default data
                 location.reload();
             }
@@ -2185,12 +4635,17 @@
         // Export/Import functions for file sharing
         function exportToFile() {
             const data = {
-                version: '1.0',
+                version: '2.0',
                 exportDate: new Date().toISOString(),
                 analysts: analysts,
                 developers: developers,
                 testers: testers,
-                services: services
+                services: services,
+                globalTestDuration: globalTestDuration,
+                globalBufferDuration: globalBufferDuration,
+                appSettings: appSettings,
+                scenarios: scenarios,
+                activeScenarioId: activeScenarioId
             };
             
             const dataStr = JSON.stringify(data, null, 2);
@@ -2230,6 +4685,34 @@
                     developers = data.developers;
                     testers = data.testers;
                     services = data.services;
+                    normalizeServices();
+                    
+                    if (data.globalTestDuration !== undefined) {
+                        globalTestDuration = data.globalTestDuration;
+                        const globalTestInput = document.getElementById('globalTestDuration');
+                        if (globalTestInput) {
+                            globalTestInput.value = globalTestDuration !== null ? globalTestDuration : '';
+                        }
+                    }
+                    
+                    if (data.globalBufferDuration !== undefined) {
+                        globalBufferDuration = data.globalBufferDuration;
+                        const globalBufferInput = document.getElementById('globalBufferDuration');
+                        if (globalBufferInput) {
+                            globalBufferInput.value = globalBufferDuration !== null ? globalBufferDuration : '';
+                        }
+                    }
+                    
+                    if (data.appSettings) {
+                        appSettings = deepClone(data.appSettings);
+                    }
+                    initializeSettings();
+                    
+                    if (data.scenarios) {
+                        scenarios = data.scenarios;
+                        activeScenarioId = data.activeScenarioId || null;
+                        persistScenarioData();
+                    }
                     
                     // Refresh UI
                     renderAnalysts();
@@ -2447,6 +4930,8 @@
 
         // Initialize
         function init() {
+            loadScenarioDataFromStorage();
+
             // Try to load from localStorage first
             const savedData = localStorage.getItem('ganttData');
             let loadedFromStorage = false;
@@ -2458,6 +4943,7 @@
                     if (parsed.developers) developers = parsed.developers;
                     if (parsed.testers) testers = parsed.testers;
                     if (parsed.services) services = parsed.services;
+                    normalizeServices();
                     loadedFromStorage = true;
                 } catch (e) {
                     console.error('localStorage yükleme hatası:', e);
@@ -2473,10 +4959,7 @@
             renderAnalysts();
             renderDevelopers();
             renderTesters();
-            calculateSchedule();
-            renderServicesTable();
-            renderGanttChart();
-            updateStatistics();
+            recalculateAll();
         }
 
         // Track last export date
